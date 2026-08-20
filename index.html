@@ -1,0 +1,2947 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Thrive360 Mock App</title>
+<link href="stylesV2.css" rel="stylesheet"/>
+
+<style>
+  .reaction-pad,
+  .cognitive-test-pad {
+    margin: 18px 0;
+    min-height: 120px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 18px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+    user-select: none;
+    padding: 18px;
+  }
+  .reaction-pad.ready, .cognitive-test-pad.ready { background: #fff7ed; border-color: #fdba74; }
+  .reaction-pad.go, .cognitive-test-pad.go { background: #dcfce7; border-color: #22c55e; }
+  .reaction-pad.nogo { background: #fee2e2; border-color: #ef4444; }
+  .choice-controls, .test-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 18px; }
+  .choice-controls .btn { flex: 1; }
+  .clock-draw-wrap { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 18px; align-items: start; }
+  .clock-canvas-box { background: #fff; border: 1px solid #d9e2ef; border-radius: 18px; padding: 14px; }
+  #clockDrawCanvas { width: 100%; max-width: 390px; height: 390px; border: 2px solid #cbd5e1; border-radius: 50%; background: #fff; touch-action: none; display: block; margin: 0 auto; }
+  .checklist { display: grid; gap: 10px; margin-top: 10px; }
+  .check-item { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #d9e2ef; border-radius: 12px; padding: 10px; background: #f8fafc; font-size: 14px; }
+  .trail-canvas { position: relative; min-height: 420px; border: 1px solid #d9e2ef; border-radius: 18px; background: linear-gradient(180deg,#ffffff,#f8fafc); margin: 18px 0; overflow: hidden; }
+  .trail-node { position: absolute; width: 54px; height: 54px; border-radius: 50%; border: 2px solid #2563eb; background: #fff; color: #0f172a; font-weight: 800; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 16px rgba(15,23,42,.08); }
+  .trail-node.correct { background: #dcfce7; border-color: #22c55e; color: #166534; }
+  .trail-node.error { background: #fee2e2; border-color: #ef4444; }
+  .trail-status { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; font-weight: 700; }
+  .digit-sequence { letter-spacing: .22em; font-size: 36px; }
+  @media (max-width: 900px) { .clock-draw-wrap { grid-template-columns: 1fr; } #clockDrawCanvas { height: 320px; } }
+</style>
+
+</head>
+<body>
+<div class="app">
+<main class="content">
+<section class="screen active full-hero" id="hero">
+<div class="hero-shell">
+<div class="hero-copy">
+<div class="tag">Wellness Screening Platform</div>
+<h1 class="hero-title">Thrive360</h1>
+<p class="hero-text">Because Independence Matters.</p>
+<p class="hero-disclaimer">
+              For screening and care-planning support only. This tool does not diagnose medical
+              conditions and does not replace evaluation by a licensed healthcare professional.
+            </p>
+<div class="hero-actions">
+<button class="btn btn-primary hero-btn" data-target="new">
+    Start New Assessment
+  </button>
+</div>
+</div>
+<div class="hero-visual">
+<div class="hero-image-card">
+<img alt="Thrive360 hero illustration" src="hero.png"/>
+</div>
+</div>
+</div>
+</section>
+<section class="screen" id="home">
+<div class="topbar">
+<div>
+<h1 class="page-title">Client Overview</h1>
+<div class="page-subtitle">Track baseline risk, scores, and follow-up progress.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="progress">View Trends</button>
+<button class="btn btn-primary" data-target="new">Start New Assessment</button>
+</div>
+</div>
+<div class="grid grid-2">
+<div class="card">
+<div class="muted-label">Recent clients</div>
+<table class="client-table">
+<thead>
+<tr><th>Name</th><th>Score</th><th>Change</th><th>Last Check</th></tr>
+</thead>
+<tbody>
+<tr><td>Mary S.</td><td>61</td><td>↓ -2</td><td>Apr 10</td></tr>
+<tr><td>John D.</td><td>72</td><td>↑ +5</td><td>Apr 12</td></tr>
+<tr><td>Evelyn R.</td><td>84</td><td>↑ +3</td><td>Apr 16</td></tr>
+</tbody>
+</table>
+</div>
+<div class="card">
+<div class="muted-label">Program snapshot</div>
+<div class="grid grid-3">
+<div><h3>68</h3><p>Average Thrive Index</p></div>
+<div><h3>14</h3><p>Assessments this month</p></div>
+<div><h3>5</h3><p>High-risk referrals triggered</p></div>
+</div>
+<div class="alert-list">
+<div class="alert alert-info">Most common concern: mobility + home safety combination.</div>
+</div>
+</div>
+</div>
+</section>
+<section class="screen intake-screen" id="new">
+<div class="intake-shell">
+<div class="topbar intake-topbar">
+<div>
+<div class="intake-progress-label">Medical Intake · Step 1 of 6</div>
+<h1 class="page-title">Client Profile</h1>
+<div class="page-subtitle">Enter the client's basic information to begin the assessment.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="hero">Cancel</button>
+<button class="btn btn-primary" data-target="intakeHealth">Next</button>
+</div>
+</div>
+<div class="intake-progress"><span style="width:16.67%"></span></div>
+<div class="card intake-card">
+<div class="muted-label">Client Profile</div>
+<div class="form-grid">
+<div class="field">
+<label for="clientName">Full name</label>
+<input id="clientName" value="Mary Smith"/>
+</div>
+<div class="field">
+<label for="clientAge">Age</label>
+<input id="clientAge" value="78"/>
+</div>
+<div class="field">
+<label for="livingSituation">Living situation</label>
+<select id="livingSituation">
+<option>Lives alone</option>
+<option>Lives with spouse</option>
+<option>Lives with family</option>
+<option>Assisted living</option>
+</select>
+</div>
+<div class="field">
+<label for="assessmentDate">Assessment date</label>
+<input id="assessmentDate" type="date" value="2026-04-20"/>
+</div>
+</div>
+</div>
+<div class="intake-footer-actions">
+<button class="btn btn-primary" data-target="intakeHealth">Next: Health History</button>
+</div>
+</div>
+</section>
+
+<section class="screen intake-screen" id="intakeHealth">
+<div class="intake-shell">
+<div class="topbar intake-topbar">
+<div>
+<div class="intake-progress-label">Medical Intake · Step 2 of 6</div>
+<h1 class="page-title">Health History</h1>
+<div class="page-subtitle">Document recent falls, assistive devices, hospitalization, and major conditions.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="new">Back</button>
+<button class="btn btn-primary" data-target="intakeMobilitySafety">Next</button>
+</div>
+</div>
+<div class="intake-progress"><span style="width:33.33%"></span></div>
+<div class="card intake-card">
+<div class="muted-label">Health History</div>
+<div class="form-grid">
+<div class="field">
+<label for="fallHistory">Falls in past 12 months</label>
+<select id="fallHistory">
+<option>None</option>
+<option>1 fall</option>
+<option>2 or more falls</option>
+</select>
+</div>
+<div class="field">
+<label for="assistiveDevice">Uses assistive device</label>
+<select id="assistiveDevice">
+<option>None</option>
+<option>Cane</option>
+<option>Walker</option>
+<option>Other</option>
+</select>
+</div>
+<div class="field">
+<label for="hospitalization">Recent hospitalization (past 6 months)</label>
+<select id="hospitalization">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+<div class="field">
+<label for="chronicConditions">Major chronic conditions</label>
+<input id="chronicConditions" placeholder="e.g. diabetes, arthritis, stroke, CHF"/>
+</div>
+</div>
+</div>
+<div class="intake-footer-actions">
+<button class="btn btn-secondary" data-target="new">Back</button>
+<button class="btn btn-primary" data-target="intakeMobilitySafety">Next: Mobility &amp; Safety</button>
+</div>
+</div>
+</section>
+
+<section class="screen intake-screen" id="intakeMobilitySafety">
+<div class="intake-shell">
+<div class="topbar intake-topbar">
+<div>
+<div class="intake-progress-label">Medical Intake · Step 3 of 6</div>
+<h1 class="page-title">Mobility and Safety Screening</h1>
+<div class="page-subtitle">Capture walking stability, fall concern, pain, and vision factors.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="intakeHealth">Back</button>
+<button class="btn btn-primary" data-target="intakeCognitiveNutrition">Next</button>
+</div>
+</div>
+<div class="intake-progress"><span style="width:50%"></span></div>
+<div class="card intake-card">
+<div class="muted-label">Mobility and Safety Screening</div>
+<div class="form-grid">
+<div class="field">
+<label for="unsteadyWalking">Feels unsteady when walking</label>
+<select id="unsteadyWalking"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="fearOfFalling">Worries about falling</label>
+<select id="fearOfFalling"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="painLevel">Current pain level</label>
+<select id="painLevel"><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+</div>
+<div class="field">
+<label for="visionConcern">Vision problems affecting mobility</label>
+<select id="visionConcern"><option>No</option><option>Yes</option></select>
+</div>
+</div>
+</div>
+<div class="intake-footer-actions">
+<button class="btn btn-secondary" data-target="intakeHealth">Back</button>
+<button class="btn btn-primary" data-target="intakeCognitiveNutrition">Next: Cognition &amp; Nutrition</button>
+</div>
+</div>
+</section>
+
+<section class="screen intake-screen" id="intakeCognitiveNutrition">
+<div class="intake-shell">
+<div class="topbar intake-topbar">
+<div>
+<div class="intake-progress-label">Medical Intake · Step 4 of 6</div>
+<h1 class="page-title">Cognitive and Nutrition Screening</h1>
+<div class="page-subtitle">Record memory, appetite, weight-loss, and hydration concerns.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="intakeMobilitySafety">Back</button>
+<button class="btn btn-primary" data-target="intakeMental">Next</button>
+</div>
+</div>
+<div class="intake-progress"><span style="width:66.67%"></span></div>
+<div class="card intake-card">
+<div class="muted-label">Cognitive and Nutrition Screening</div>
+<div class="form-grid">
+<div class="field">
+<label for="memoryConcern">Memory concern reported</label>
+<select id="memoryConcern"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="appetiteChange">Recent appetite change</label>
+<select id="appetiteChange"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="weightLoss">Unintentional weight loss</label>
+<select id="weightLoss"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="hydrationConcern">Hydration concern</label>
+<select id="hydrationConcern"><option>No</option><option>Yes</option></select>
+</div>
+</div>
+</div>
+<div class="intake-footer-actions">
+<button class="btn btn-secondary" data-target="intakeMobilitySafety">Back</button>
+<button class="btn btn-primary" data-target="intakeMental">Next: Mental Wellbeing</button>
+</div>
+</div>
+</section>
+
+<section class="screen intake-screen" id="intakeMental">
+<div class="intake-shell">
+<div class="topbar intake-topbar">
+<div>
+<div class="intake-progress-label">Medical Intake · Step 5 of 6</div>
+<h1 class="page-title">Mental Wellbeing</h1>
+<div class="page-subtitle">Capture mood, anxiety, social isolation, and optional intake notes.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="intakeCognitiveNutrition">Back</button>
+<button class="btn btn-primary" data-target="intakeClinicalNotes">Next</button>
+</div>
+</div>
+<div class="intake-progress"><span style="width:83.33%"></span></div>
+<div class="card intake-card">
+<div class="muted-label">Mental Wellbeing</div>
+<div class="form-grid">
+<div class="field">
+<label for="moodConcern">Low mood reported</label>
+<select id="moodConcern"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="anxietyConcern">Anxiety or excessive worry</label>
+<select id="anxietyConcern"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="lonelinessConcern">Feels socially isolated</label>
+<select id="lonelinessConcern"><option>No</option><option>Yes</option></select>
+</div>
+<div class="field">
+<label for="providerNotes">Notes</label>
+<input id="providerNotes" placeholder="Optional intake notes"/>
+</div>
+</div>
+</div>
+<div class="intake-footer-actions">
+<button class="btn btn-secondary" data-target="intakeCognitiveNutrition">Back</button>
+<button class="btn btn-primary" data-target="intakeClinicalNotes">Next: Clinical Notes</button>
+</div>
+</div>
+</section>
+
+<section class="screen intake-screen" id="intakeClinicalNotes">
+<div class="intake-shell">
+<div class="topbar intake-topbar">
+<div>
+<div class="intake-progress-label">Medical Intake · Step 6 of 6</div>
+<h1 class="page-title">Clinical Notes</h1>
+<div class="page-subtitle">Add any final observations before beginning the guided assessment.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="intakeMental">Back</button>
+<button class="btn btn-primary" data-target="mobility">Complete Intake</button>
+</div>
+</div>
+<div class="intake-progress"><span style="width:100%"></span></div>
+<div class="card intake-card">
+<div class="muted-label">Clinical Notes</div>
+<div class="field">
+<label for="clinicalNotes">Additional observations / intake notes</label>
+<textarea id="clinicalNotes" placeholder="Document observations, red flags, environmental concerns, caregiver input, or anything impacting mobility, cognition, nutrition, safety, or wellbeing..." rows="8"></textarea>
+</div>
+</div>
+<div class="intake-footer-actions">
+<button class="btn btn-secondary" data-target="intakeMental">Back</button>
+<button class="btn btn-primary" data-target="mobility">Complete Intake &amp; Begin Assessment</button>
+</div>
+</div>
+</section>
+<section class="screen" id="mobility">
+<div class="topbar">
+<div>
+<h1 class="page-title">Mobility Assessment</h1>
+<div class="page-subtitle">Step 1 of 7</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="new">Back</button>
+<button class="btn btn-primary" data-target="driving">Next</button>
+</div>
+</div>
+<div class="stepper"><button class="step current" data-target="mobility">Mobility</button><button class="step" data-target="driving">Driving</button><button class="step" data-target="processing">Processing Speed</button><button class="step" data-target="cognition">Cognition</button><button class="step" data-target="nutrition">Nutrition</button><button class="step" data-target="homeSafety">Home Safety</button><button class="step" data-target="mental">Mental Wellbeing</button><button class="step" data-target="review">Review</button></div>
+<div class="grid">
+<!-- 10MWT -->
+<div class="card test-card">
+
+<h2 class="test-title">
+10-Meter Walk Test
+</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Measure a 10-meter walkway with clear start and end points. <br/>
+Instruct the patient to walk at their normal, comfortable pace. <br/>
+Begin timing when the first foot crosses the start line and stop when the first foot crosses the end line. <br/>
+Allow use of customary assistive devices if normally used. <br/>
+Observe gait pattern, balance, and safety throughout.
+</div>
+
+<div class="test-resource">
+<a
+  href="https://www.youtube.com/results?search_query=10+meter+walk+test+demonstration"
+  target="_blank"
+  rel="noopener"
+>
+  ▶ Watch Demo
+</a>
+</div>
+
+<div class="form-grid">
+
+  <div class="field">
+    <label for="walkTime">
+      Time (seconds)
+    </label>
+
+    <input
+      id="walkTime"
+      step="0.1"
+      type="number"
+      value="12.4"
+    />
+  </div>
+
+  <div class="field">
+    <label for="gaitAid">
+      Observed gait aid
+    </label>
+
+    <select id="gaitAid">
+      <option>None</option>
+      <option>Cane</option>
+      <option>Walker</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="gaitSpeed">
+      Gait speed (m/s)
+    </label>
+
+    <input
+      id="gaitSpeed"
+      readonly
+      type="text"
+      value="0.81"
+    />
+  </div>
+
+  <div class="field">
+    <label for="gaitSpeedInterpretation">
+      Functional Ambulation Level
+    </label>
+
+    <input
+      id="gaitSpeedInterpretation"
+      readonly
+      type="text"
+      value="Community ambulator"
+    />
+  </div>
+
+</div>
+
+<div class="clinical-guide">
+
+  <div class="guide-title">
+    Clinical Reference (10-Meter Walk Test)
+  </div>
+
+  <div class="guide-row">
+    <span>&lt; 0.4 m/s</span>
+
+    <span class="guide-badge guide-high">
+      Household ambulator
+    </span>
+  </div>
+
+  <div class="guide-row">
+    <span>0.4 – 0.8 m/s</span>
+
+    <span class="guide-badge guide-mid">
+      Limited community ambulator
+    </span>
+  </div>
+
+  <div class="guide-row">
+    <span>&gt; 0.8 m/s</span>
+
+    <span class="guide-badge guide-good">
+      Community ambulator
+    </span>
+  </div>
+
+  <div class="guide-row">
+    <span>&lt; 0.7 m/s</span>
+
+    <span class="guide-badge guide-high">
+      Increased adverse-event risk
+    </span>
+  </div>
+
+</div>
+
+<div class="disclaimer-box">
+  <strong>Clinical Note:</strong>
+  Walking speeds below 0.7 m/s have been associated with increased risk of
+  falls, hospitalization, fracture, caregiver dependence, and functional decline
+  in older adults. Functional ambulation classifications are commonly used in
+  neurologic and geriatric rehabilitation to estimate community mobility.
+</div>
+<!-- TUG -->
+<div class="card test-card">
+
+<h2 class="test-title">
+Timed Up and Go (TUG)
+</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Patient starts seated in a standard chair with armrests. <br/>
+On "Go", patient stands, walks 3 meters, turns, walks back, and sits down. <br/>
+Use normal assistive device if applicable. <br/>
+Start timing on "Go" and stop when patient is seated again. <br/>
+Observe for instability, hesitation, or unsafe turning.
+</div>
+
+<div class="test-resource">
+<a
+  href="https://www.youtube.com/results?search_query=timed+up+and+go+test+demonstration"
+  target="_blank"
+  rel="noopener"
+>
+  ▶ Watch Demo
+</a>
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+<label for="tugTime">
+Time (seconds)
+</label>
+
+<input
+  id="tugTime"
+  step="0.1"
+  type="number"
+  value="11.2"
+/>
+</div>
+
+<div class="field">
+<label for="tugAid">
+Observed gait aid
+</label>
+
+<select id="tugAid">
+<option>None</option>
+<option>Cane</option>
+<option>Walker</option>
+</select>
+</div>
+
+</div>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Clinical Reference
+</div>
+
+<div class="guide-row">
+<span>&lt; 12 sec</span>
+
+<span class="guide-badge guide-good">
+Low fall risk
+</span>
+</div>
+
+<div class="guide-row">
+<span>12 – 20 sec</span>
+
+<span class="guide-badge guide-mid">
+Moderate risk
+</span>
+</div>
+
+<div class="guide-row">
+<span>&gt; 20 sec</span>
+
+<span class="guide-badge guide-high">
+High fall risk
+</span>
+</div>
+
+</div>
+
+</div>
+<!-- Chair Stand -->
+<div class="card test-card">
+
+<h2 class="test-title">
+30-Second Chair Stand
+</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Patient sits in a standard chair with arms crossed over chest. <br/>
+On "Go", patient stands fully and sits as many times as possible in 30 seconds. <br/>
+Count only full stands. <br/>
+If arms are used, document this. <br/>
+Stop test if patient becomes unsafe or fatigued.
+</div>
+
+<div class="test-resource">
+<a
+  href="https://www.youtube.com/results?search_query=30+second+chair+stand+test+demonstration"
+  target="_blank"
+  rel="noopener"
+>
+  ▶ Watch Demo
+</a>
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+<label for="chairStandReps">
+Repetitions
+</label>
+
+<input
+  id="chairStandReps"
+  type="number"
+  value="10"
+/>
+</div>
+
+<div class="field">
+<label for="chairStandNotes">
+Notes
+</label>
+
+<input
+  id="chairStandNotes"
+  placeholder="Optional notes"
+  type="text"
+/>
+</div>
+
+</div>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Clinical Reference
+</div>
+
+<div class="guide-row">
+<span>&gt; 12 reps</span>
+
+<span class="guide-badge guide-good">
+Good lower extremity strength
+</span>
+</div>
+
+<div class="guide-row">
+<span>8 – 12 reps</span>
+
+<span class="guide-badge guide-mid">
+Mild strength impairment
+</span>
+</div>
+
+<div class="guide-row">
+<span>&lt; 8 reps</span>
+
+<span class="guide-badge guide-high">
+Higher fall and weakness concern
+</span>
+</div>
+
+</div>
+
+</div>
+<!-- 4 Stage Balance -->
+<div class="card test-card">
+
+<h2 class="test-title">
+4-Stage Balance Test
+</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Test progressively:
+side-by-side → semi-tandem → tandem → single-leg. <br/>
+Ask patient to hold each position for 10 seconds. <br/>
+Do not allow support. <br/>
+Stop if balance is lost or assistance is required. <br/>
+Record highest level completed.
+</div>
+
+<div class="test-resource">
+<a
+  href="https://www.youtube.com/results?search_query=4+stage+balance+test+demonstration"
+  target="_blank"
+  rel="noopener"
+>
+  ▶ Watch Demo
+</a>
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+<label for="balanceStage">
+Stage achieved
+</label>
+
+<select id="balanceStage">
+<option>Unable</option>
+<option>Side-by-side</option>
+<option>Semi-tandem</option>
+<option selected>Tandem</option>
+<option>Single-leg</option>
+</select>
+</div>
+
+<div class="field">
+<label for="balanceNotes">
+Notes
+</label>
+
+<input
+  id="balanceNotes"
+  placeholder="Optional notes"
+  type="text"
+/>
+</div>
+
+</div>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Clinical Reference
+</div>
+
+<div class="guide-row">
+<span>Tandem or better</span>
+
+<span class="guide-badge guide-good">
+Lower balance concern
+</span>
+</div>
+
+<div class="guide-row">
+<span>Semi-tandem only</span>
+
+<span class="guide-badge guide-mid">
+Moderate balance impairment
+</span>
+</div>
+
+<div class="guide-row">
+<span>Unable to maintain semi-tandem</span>
+
+<span class="guide-badge guide-high">
+Higher fall risk
+</span>
+</div>
+
+</div>
+
+</div>
+<!-- FSST -->
+<div class="card test-card">
+
+<h2 class="test-title">
+4-Square Step Test
+</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Place four markers in a cross pattern. <br/>
+Patient steps forward → right → back → left, then reverses. <br/>
+Move as quickly and safely as possible without touching lines. <br/>
+Start timing at first step and stop at completion. <br/>
+Repeat if incorrect sequence is performed.
+</div>
+
+<div class="test-resource">
+<a
+  href="https://www.youtube.com/results?search_query=4+square+step+test+demonstration"
+  target="_blank"
+  rel="noopener"
+>
+  ▶ Watch Demo
+</a>
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+<label for="fsstTime">
+Time (seconds)
+</label>
+
+<input
+  id="fsstTime"
+  step="0.1"
+  type="number"
+  value="13.5"
+/>
+</div>
+
+<div class="field">
+<label for="fsstNotes">
+Notes
+</label>
+
+<input
+  id="fsstNotes"
+  placeholder="Optional notes"
+  type="text"
+/>
+</div>
+
+</div>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Clinical Reference
+</div>
+
+<div class="guide-row">
+<span>&lt; 15 sec</span>
+
+<span class="guide-badge guide-good">
+Lower dynamic balance concern
+</span>
+</div>
+
+<div class="guide-row">
+<span>15 – 24 sec</span>
+
+<span class="guide-badge guide-mid">
+Moderate balance / stepping impairment
+</span>
+</div>
+
+<div class="guide-row">
+<span>&gt; 24 sec</span>
+
+<span class="guide-badge guide-high">
+Higher fall risk
+</span>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="screen" id="driving">
+
+<div class="topbar">
+<div>
+<h1 class="page-title">Driving &amp; Community Mobility</h1>
+<div class="page-subtitle">Step 2 of 7</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="mobility">Back</button>
+<button class="btn btn-primary" data-target="processing">Next</button>
+</div>
+</div>
+<div class="stepper">
+<button class="step" data-target="mobility">Mobility</button>
+<button class="step current" data-target="driving">Driving</button>
+<button class="step" data-target="processing">Processing Speed</button>
+<button class="step" data-target="cognition">Cognition</button>
+<button class="step" data-target="nutrition">Nutrition</button>
+<button class="step" data-target="homeSafety">Home Safety</button>
+<button class="step" data-target="mental">Mental Wellbeing</button>
+<button class="step" data-target="review">Review</button>
+</div>
+<div class="grid">
+<div class="card test-card">
+<h2 class="test-title">Driving &amp; Community Mobility Screening</h2>
+<div class="instructions">
+<strong>Purpose:</strong><br/>
+        This section screens for factors associated with driving safety and community mobility.
+        It does not independently determine fitness to drive and does not replace a formal driving evaluation.
+      </div>
+</div>
+<div class="card test-card">
+<h2 class="test-title">Self-Reported Driving Concerns</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+        Ask the client and/or family whether any recent driving-related concerns have been noticed.
+      </div>
+<div class="form-grid">
+<div class="field">
+<label for="drivingNearMiss">Recent crashes or near misses</label>
+<select id="drivingNearMiss">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+<div class="field">
+<label for="familyDrivingConcern">Family concern about driving</label>
+<select id="familyDrivingConcern">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+<div class="field">
+<label for="nightDriving">Avoids night driving</label>
+<select id="nightDriving">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+<div class="field">
+<label for="navigationDifficulty">Difficulty navigating familiar areas</label>
+<select id="navigationDifficulty">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+<div class="field">
+<label for="blindSpotDifficulty">Difficulty checking blind spots / turning head</label>
+<select id="blindSpotDifficulty">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+</div>
+</div>
+<div class="card test-card">
+
+<h2 class="test-title">Transportation Independence</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Ask about current transportation habits, community participation,
+and recent changes in independence.
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+<label for="drivesIndependently">
+Currently drives independently
+</label>
+
+<select id="drivesIndependently">
+<option value="0">Yes</option>
+<option value="1">Limited driving</option>
+<option value="2">No longer driving</option>
+</select>
+</div>
+
+<div class="field">
+<label for="transportReliance">
+Relies on family/friends for transportation
+</label>
+
+<select id="transportReliance">
+<option value="0">No</option>
+<option value="1">Sometimes</option>
+<option value="2">Frequently</option>
+</select>
+</div>
+
+<div class="field">
+<label for="communityRestriction">
+Reduced community outings due to transportation concerns
+</label>
+
+<select id="communityRestriction">
+<option value="0">No</option>
+<option value="1">Sometimes</option>
+<option value="2">Frequently</option>
+</select>
+</div>
+
+<div class="field">
+<label for="transportMissedActivities">
+Missed appointments or activities due to transportation issues
+</label>
+
+<select id="transportMissedActivities">
+<option value="0">No</option>
+<option value="1">Occasionally</option>
+<option value="2">Frequently</option>
+</select>
+</div>
+
+</div>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Community Mobility Interpretation
+</div>
+
+<div class="guide-row">
+<span>
+Independent transportation participation
+</span>
+
+<span class="guide-badge guide-good">
+Low concern
+</span>
+</div>
+
+<div class="guide-row">
+<span>
+Some transportation limitation or reliance
+</span>
+
+<span class="guide-badge guide-mid">
+Monitor participation
+</span>
+</div>
+
+<div class="guide-row">
+<span>
+Frequent transportation restriction or dependence
+</span>
+
+<span class="guide-badge guide-high">
+Higher community mobility concern
+</span>
+</div>
+
+</div>
+
+</div>
+
+<div class="card test-card">
+
+<h2 class="test-title">Clinical Interpretation</h2>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Driving-Related Risk Indicators
+</div>
+
+<div class="guide-row">
+<span>
+Executive dysfunction + slowed processing speed
+</span>
+
+<span class="guide-badge guide-high">
+Driving-related cognitive concern
+</span>
+</div>
+
+<div class="guide-row">
+<span>
+Navigation concerns or family concern reported
+</span>
+
+<span class="guide-badge guide-mid">
+Further screening may be appropriate
+</span>
+</div>
+
+<div class="guide-row">
+<span>
+Multiple risk indicators present
+</span>
+
+<span class="guide-badge guide-high">
+Consider formal driving evaluation referral
+</span>
+</div>
+
+</div>
+
+<div class="instructions" style="margin-top: 18px;">
+This section is intended to identify risk factors associated with
+driving safety and community mobility. It is not a pass/fail driving
+assessment and does not independently determine driving fitness.
+</div>
+
+</div>
+
+</div>
+</section>
+<section class="screen" id="processing">
+<div class="topbar">
+<div>
+<h1 class="page-title">Processing Speed &amp; Reaction</h1>
+<div class="page-subtitle">Step 3 of 7</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="driving">Back</button>
+<button class="btn btn-primary" data-target="cognition">Next</button>
+</div>
+</div>
+
+<div class="stepper">
+<button class="step" data-target="mobility">Mobility</button>
+<button class="step" data-target="driving">Driving</button>
+<button class="step current" data-target="processing">Processing Speed</button>
+<button class="step" data-target="cognition">Cognition</button>
+<button class="step" data-target="nutrition">Nutrition</button>
+<button class="step" data-target="homeSafety">Home Safety</button>
+<button class="step" data-target="mental">Mental Wellbeing</button>
+<button class="step" data-target="review">Review</button>
+</div>
+
+<div class="grid">
+
+<div class="card test-card">
+<h2 class="test-title">Clinician Setup</h2>
+<div class="instructions">
+<strong>Before starting:</strong><br/>
+Seat the client comfortably with the device directly in front of them. Explain that these are screening tasks, not pass/fail tests. Complete one practice trial if needed. Record observations such as hesitation, confusion, impulsive tapping, or difficulty following directions.
+</div>
+</div>
+
+<div class="card test-card">
+<h2 class="test-title">Simple Visual Reaction Time</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+The client taps the test pad as soon as it turns green. The app will run 5 trials and calculate average reaction time, best reaction time, and missed/early taps automatically.
+</div>
+
+<button class="btn btn-primary" id="simpleRtStart" type="button">Start 5-Trial Test</button>
+<div class="reaction-pad" id="simpleRtPad">Press Start</div>
+
+<div class="form-grid">
+<div class="field">
+<label for="simpleRtAvg">Average reaction time (ms)</label>
+<input id="simpleRtAvg" type="number" value="0" readonly/>
+</div>
+<div class="field">
+<label for="simpleRtBest">Best reaction time (ms)</label>
+<input id="simpleRtBest" type="number" value="0" readonly/>
+</div>
+<div class="field">
+<label for="simpleRtMisses">Missed / early taps</label>
+<input id="simpleRtMisses" type="number" value="0" readonly/>
+</div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Clinical Reference</div>
+<div class="guide-row">
+<span>&lt; 300 ms</span>
+<span class="guide-badge guide-good">Fast response</span>
+</div>
+<div class="guide-row">
+<span>300–500 ms</span>
+<span class="guide-badge guide-mid">Mild slowing</span>
+</div>
+<div class="guide-row">
+<span>&gt; 500 ms</span>
+<span class="guide-badge guide-high">Significant slowing</span>
+</div>
+</div>
+</div>
+
+<div class="card test-card">
+<h2 class="test-title">Choice Reaction Time</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+The client responds to the arrow direction. Press LEFT for ← and RIGHT for →. This screens response selection and divided-attention demand.
+</div>
+
+<button class="btn btn-primary" id="choiceRtStart" type="button">Start 6-Trial Test</button>
+<div class="reaction-pad" id="choiceRtCue">Press Start</div>
+
+<div class="choice-controls">
+<button class="btn btn-secondary" id="choiceLeft" type="button">Left</button>
+<button class="btn btn-secondary" id="choiceRight" type="button">Right</button>
+</div>
+
+<div class="form-grid">
+<div class="field">
+<label for="choiceRtAvg">Average response time (ms)</label>
+<input id="choiceRtAvg" type="number" value="0" readonly/>
+</div>
+<div class="field">
+<label for="choiceRtErrors">Incorrect responses</label>
+<input id="choiceRtErrors" type="number" value="0" readonly/>
+</div>
+<div class="field">
+<label for="choiceRtMisses">Missed responses</label>
+<input id="choiceRtMisses" type="number" value="0" readonly/>
+</div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Clinical Reference</div>
+<div class="guide-row">
+<span>&lt; 450 ms</span>
+<span class="guide-badge guide-good">Normal processing speed</span>
+</div>
+<div class="guide-row">
+<span>450–650 ms</span>
+<span class="guide-badge guide-mid">Mild slowing</span>
+</div>
+<div class="guide-row">
+<span>&gt; 650 ms</span>
+<span class="guide-badge guide-high">Significant slowing</span>
+</div>
+</div>
+</div>
+
+<div class="card test-card">
+<h2 class="test-title">Go / No-Go Inhibition Screen</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+The client taps only when the cue says GO. They should not tap when the cue says NO-GO. The app will run 8 trials and record false taps and missed GO responses automatically.
+</div>
+
+<button class="btn btn-primary" id="goNoGoStart" type="button">Start 8-Trial Test</button>
+<div class="reaction-pad" id="goNoGoCue">Press Start</div>
+<button class="btn btn-secondary" id="goNoGoTap" type="button">Tap</button>
+
+<div class="form-grid">
+<div class="field">
+<label for="goNoGoFalseTaps">False taps</label>
+<input id="goNoGoFalseTaps" type="number" value="0" readonly/>
+</div>
+<div class="field">
+<label for="goNoGoMisses">Missed GO responses</label>
+<input id="goNoGoMisses" type="number" value="0" readonly/>
+</div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Clinical Interpretation</div>
+<div class="guide-row">
+<span>0–1 total errors</span>
+<span class="guide-badge guide-good">Lower concern</span>
+</div>
+<div class="guide-row">
+<span>2–3 total errors</span>
+<span class="guide-badge guide-mid">Monitor inhibition</span>
+</div>
+<div class="guide-row">
+<span>4+ total errors</span>
+<span class="guide-badge guide-high">Executive control concern</span>
+</div>
+</div>
+</div>
+<div class="card test-card">
+
+<h2 class="test-title">
+Processing Speed Screening Notes
+</h2>
+
+<div class="instructions">
+
+These digital processing speed and reaction tasks are screening tools
+informed by neurocognitive assessment literature and older adult
+normative trends.
+
+Performance may be influenced by:
+<ul style="margin-top:10px;">
+<li>Vision impairment</li>
+<li>Arthritis or motor coordination difficulty</li>
+<li>Touchscreen or mouse familiarity</li>
+<li>Fatigue</li>
+<li>Anxiety</li>
+<li>Hearing impairment</li>
+<li>Medication effects</li>
+<li>Attention fluctuations</li>
+</ul>
+
+Results should be interpreted within the context of the full clinical
+evaluation and are not intended to independently diagnose cognitive
+impairment or determine driving fitness.
+
+</div>
+
+</div>
+</div>
+</section>
+<section class="screen" id="cognition">
+<div class="topbar">
+<div>
+<h1 class="page-title">Cognitive Assessment</h1>
+<div class="page-subtitle">Step 4 of 7</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="processing">Back</button>
+<button class="btn btn-primary" data-target="nutrition">Next</button>
+</div>
+</div>
+<div class="stepper"><button class="step" data-target="mobility">Mobility</button><button class="step" data-target="driving">Driving</button><button class="step" data-target="processing">Processing Speed</button><button class="step current" data-target="cognition">Cognition</button><button class="step" data-target="nutrition">Nutrition</button><button class="step" data-target="homeSafety">Home Safety</button><button class="step" data-target="mental">Mental Wellbeing</button><button class="step" data-target="review">Review</button></div>
+
+<div class="grid">
+
+<div class="card test-card">
+<h2 class="test-title">Cognitive Testing Setup</h2>
+<div class="instructions">
+<strong>Before starting:</strong><br/>
+Seat the client comfortably with the device directly in front of them. Explain that these are screening tasks, not pass/fail tests. Use normal hearing/vision supports. Document observations such as confusion, impulsivity, difficulty following directions, or fatigue.
+</div>
+</div>
+
+<div class="card test-card">
+<h2 class="test-title">Mini-Cog — Guided Administration</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Click Start to show 3 unrelated words. Ask the client to repeat them once. Then complete the clock drawing task below. After the clock drawing, ask the client to recall the 3 words without cues.
+</div>
+
+<div class="test-actions">
+<button class="btn btn-primary" id="miniCogStart" type="button">Start 3-Word Registration</button>
+<button class="btn btn-secondary" id="miniCogHideWords" type="button">Hide Words</button>
+</div>
+
+<div class="cognitive-test-pad" id="miniCogWordsPad">Press Start to display words</div>
+
+<div class="field">
+<label>Recalled words</label>
+
+<div class="checklist" id="miniCogRecallChecklist">
+<div class="instructions">
+Press “Start 3-Word Registration” to generate recall words.
+</div>
+</div>
+
+</div>
+<div class="field">
+<label for="miniCogRecall">3-word recall score (0–3)</label>
+<input id="miniCogRecall" max="3" min="0" type="number" value="0" readonly/>
+</div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Mini-Cog Clinical Reference</div>
+<div class="guide-row"><span>Recall = 3</span><span class="guide-badge guide-good">Normal screen</span></div>
+<div class="guide-row"><span>Recall = 1–2 + normal clock</span><span class="guide-badge guide-good">Normal screen</span></div>
+<div class="guide-row"><span>Recall = 1–2 + impaired clock</span><span class="guide-badge guide-high">Positive screen</span></div>
+<div class="guide-row"><span>Recall = 0</span><span class="guide-badge guide-high">Positive screen</span></div>
+</div>
+</div>
+
+<div class="card test-card">
+<h2 class="test-title">Clock Drawing — Digital Screening Version</h2>
+<div class="instructions">
+<strong>Prompt:</strong><br/>
+Ask the client: “Draw a clock. Put in all the numbers. Set the hands to 10 past 11.” The client may draw with a mouse, touchscreen, or stylus. Scoring remains clinician-guided.
+</div>
+
+<div class="clock-draw-wrap">
+<div class="clock-canvas-box">
+<canvas id="clockDrawCanvas" width="420" height="420"></canvas>
+<div class="test-actions">
+<button class="btn btn-secondary" id="clockUndo" type="button">Undo</button>
+<button class="btn btn-secondary" id="clockClear" type="button">Clear</button>
+</div>
+</div>
+<div>
+<div class="muted-label">Clinician Scoring Checklist</div>
+<div class="checklist">
+<label class="check-item"><input type="checkbox" class="clock-score-item" data-points="1"/> Circle/clock face is present</label>
+<label class="check-item"><input type="checkbox" class="clock-score-item" data-points="1"/> Numbers are included</label>
+<label class="check-item"><input type="checkbox" class="clock-score-item" data-points="1"/> Numbers are reasonably sequenced and spaced</label>
+<label class="check-item"><input type="checkbox" class="clock-score-item" data-points="1"/> Two hands are present</label>
+<label class="check-item"><input type="checkbox" class="clock-score-item" data-points="1"/> Hands show correct requested time</label>
+</div>
+<div class="form-grid" style="margin-top:14px;">
+<div class="field">
+<label for="clockChecklistScore">Clock checklist score (0–5)</label>
+<input id="clockChecklistScore" type="number" value="0" readonly/>
+</div>
+<div class="field">
+<label for="miniCogClock">Clock draw rating</label>
+<select id="miniCogClock">
+<option value="2">Normal</option>
+<option value="1">Mild impairment</option>
+<option value="0">Abnormal</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Clock Draw Scoring Guide</div>
+<div class="guide-row"><span>4–5 checklist points</span><span class="guide-badge guide-good">Normal / functionally adequate</span></div>
+<div class="guide-row"><span>2–3 checklist points</span><span class="guide-badge guide-mid">Mild impairment / monitor</span></div>
+<div class="guide-row"><span>0–1 checklist points</span><span class="guide-badge guide-high">Abnormal / concern</span></div>
+</div>
+</div>
+<div class="card test-card">
+<h2 class="test-title">Trail Making A — Digital Screening Version</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Ask the client to click the circles in number order: 1 → 2 → 3, and so on. The app starts timing when Start is clicked and records errors automatically.
+</div>
+
+<div class="test-actions">
+<button class="btn btn-primary" id="trailAStart" type="button">Start Trail A</button>
+<button class="btn btn-secondary" id="trailAReset" type="button">Reset</button>
+</div>
+
+<div class="trail-status">
+<div>Next: <span id="trailANext">1</span></div>
+<div>Time: <span id="trailATimer">0.0</span> sec</div>
+<div>Errors: <span id="trailAErrorsDisplay">0</span></div>
+</div>
+
+<div class="trail-canvas" id="trailACanvas"></div>
+
+<div class="form-grid">
+<div class="field">
+<label for="trailATime">Time (seconds)</label>
+<input id="trailATime" step="0.1" type="number" value="0" readonly/>
+</div>
+
+<div class="field">
+<label for="trailAErrors">Errors</label>
+<select id="trailAErrors">
+<option>None</option>
+<option>1–2 errors</option>
+<option>Multiple errors</option>
+</select>
+</div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Clinical Reference</div>
+<div class="guide-row">
+<span>&lt; 60 sec</span>
+<span class="guide-badge guide-good">
+Typical older adult processing speed
+</span>
+</div>
+
+<div class="guide-row">
+<span>60–90 sec</span>
+<span class="guide-badge guide-mid">
+Mild slowing may be present
+</span>
+</div>
+
+<div class="guide-row">
+<span>&gt; 90 sec</span>
+<span class="guide-badge guide-high">
+Further screening may be appropriate
+</span>
+</div>
+</div>
+</div>
+
+<div class="card test-card">
+
+<h2 class="test-title">
+Trail Making B — Digital Screening Version
+</h2>
+
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Ask the client to click the circles in alternating number-letter order:
+1 → A → 2 → B, and so on.
+
+This digitally adapted screening task evaluates:
+<ul style="margin-top:8px;">
+<li>Executive functioning</li>
+<li>Task switching</li>
+<li>Visual scanning</li>
+<li>Divided attention</li>
+<li>Processing speed</li>
+</ul>
+
+This is a digital screening adaptation informed by published Trail Making
+Test paradigms and is not intended to replace formal neuropsychological testing.
+</div>
+
+<div class="test-actions">
+<button class="btn btn-primary" id="trailStart" type="button">
+Start Trail
+</button>
+
+<button class="btn btn-secondary" id="trailReset" type="button">
+Reset
+</button>
+</div>
+
+<div class="trail-status">
+<div>
+Next:
+<span id="trailNext">1</span>
+</div>
+
+<div>
+Time:
+<span id="trailTimer">0.0</span> sec
+</div>
+
+<div>
+Errors:
+<span id="trailErrorsDisplay">0</span>
+</div>
+</div>
+
+<div class="trail-canvas" id="trailCanvas"></div>
+
+<div class="form-grid">
+
+<div class="field">
+<label for="trailBTime">
+Time (seconds)
+</label>
+
+<input
+  id="trailBTime"
+  step="0.1"
+  type="number"
+  value="0"
+  readonly
+/>
+</div>
+
+<div class="field">
+<label for="trailBErrors">
+Errors
+</label>
+
+<select id="trailBErrors">
+<option>None</option>
+<option>1–2 errors</option>
+<option>Multiple errors</option>
+</select>
+</div>
+
+</div>
+
+<div class="clinical-guide">
+
+<div class="guide-title">
+Clinical Reference
+</div>
+
+<div class="guide-row">
+<span>&lt; 120 sec</span>
+
+<span class="guide-badge guide-good">
+Typical executive sequencing performance
+</span>
+</div>
+
+<div class="guide-row">
+<span>120–180 sec</span>
+
+<span class="guide-badge guide-mid">
+Mild executive slowing
+</span>
+</div>
+
+<div class="guide-row">
+<span>&gt; 180 sec</span>
+
+<span class="guide-badge guide-high">
+Executive inefficiency may be present
+</span>
+</div>
+
+</div>
+
+<div class="instructions" style="margin-top:18px;">
+Performance may be influenced by age, education, vision,
+motor coordination, fatigue, and familiarity with touchscreen
+or mouse-based technology.
+</div>
+
+</div>
+
+<div class="card test-card">
+<h2 class="test-title">Digit Span — Guided Sequence</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+Click Start to generate a digit sequence. Read the digits aloud at roughly one digit per second. Mark whether the client repeated the sequence correctly. The app increases length after a pass and records the highest successful span.
+</div>
+
+<div class="form-grid">
+<div class="field">
+<label for="digitSpanType">Test type</label>
+<select id="digitSpanType">
+<option>Forward</option>
+<option>Backward</option>
+</select>
+</div>
+<div class="field">
+<label for="digitSpanScore">Max digits recalled</label>
+<input id="digitSpanScore" type="number" value="0" readonly/>
+</div>
+</div>
+
+<div class="test-actions">
+<button class="btn btn-primary" id="digitSpanStart" type="button">Start Digit Span</button>
+<button class="btn btn-secondary" id="digitSpanPass" type="button">Correct</button>
+<button class="btn btn-secondary" id="digitSpanFail" type="button">Incorrect</button>
+<button class="btn btn-secondary" id="digitSpanReset" type="button">Reset</button>
+</div>
+
+<div class="cognitive-test-pad digit-sequence" id="digitSpanSequence">Press Start</div>
+<div class="trail-status">
+<div>Current length: <span id="digitSpanLength">3</span></div>
+<div>Best span: <span id="digitSpanBest">0</span></div>
+</div>
+
+<div class="clinical-guide">
+<div class="guide-title">Clinical Reference</div>
+<div class="guide-row"><span>≥ 6 digits</span><span class="guide-badge guide-good">Normal working memory</span></div>
+<div class="guide-row"><span>4–5 digits</span><span class="guide-badge guide-mid">Mild impairment</span></div>
+<div class="guide-row"><span>≤ 3 digits</span><span class="guide-badge guide-high">Further screening may be appropriate</span></div>
+</div>
+</div>
+<div class="card test-card">
+
+<h2 class="test-title">
+Cognitive Screening Notes
+</h2>
+
+<div class="instructions">
+
+These digital cognitive screening activities are adapted from commonly
+used clinical screening paradigms including:
+
+<ul style="margin-top:10px;">
+<li>Mini-Cog</li>
+<li>Clock Drawing paradigms</li>
+<li>Trail Making Test A &amp; B concepts</li>
+<li>Digit Span attention testing</li>
+</ul>
+
+These tasks are intended for:
+<ul style="margin-top:10px;">
+<li>Screening</li>
+<li>Trend monitoring</li>
+<li>Clinical observation</li>
+<li>Identification of possible cognitive variability</li>
+</ul>
+
+Performance may be influenced by:
+<ul style="margin-top:10px;">
+<li>Education level</li>
+<li>Vision impairment</li>
+<li>Motor coordination difficulty</li>
+<li>Technology familiarity</li>
+<li>Fatigue</li>
+<li>Anxiety</li>
+<li>Language differences</li>
+<li>Hearing impairment</li>
+</ul>
+
+Results should be interpreted within the context of the full clinical
+evaluation and are not intended to independently diagnose dementia,
+mild cognitive impairment, or neurocognitive disorder.
+
+</div>
+
+</div>
+
+</section>
+
+<section class="screen" id="nutrition">
+<div class="topbar">
+<div>
+<h1 class="page-title">Nutrition Assessment</h1>
+<div class="page-subtitle">Step 5 of 7</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="cognition">Back</button>
+<button class="btn btn-primary" data-target="homeSafety">Next</button>
+</div>
+</div>
+<div class="stepper"><button class="step" data-target="mobility">Mobility</button><button class="step" data-target="driving">Driving</button><button class="step" data-target="processing">Processing Speed</button><button class="step" data-target="cognition">Cognition</button><button class="step current" data-target="nutrition">Nutrition</button><button class="step" data-target="homeSafety">Home Safety</button><button class="step" data-target="mental">Mental Wellbeing</button><button class="step" data-target="review">Review</button></div>
+<div class="grid">
+<div class="card test-card">
+<h2 class="test-title">Mini Nutritional Assessment (MNA-SF)</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+    Complete all questions based on the patient’s status over the past 3 months.
+    Select the most appropriate response for each item. Score will be calculated automatically.
+  </div>
+<div class="form-grid">
+<!-- A: Food intake -->
+<div class="field">
+<label>Decline in food intake (past 3 months)</label>
+<select class="mna-input" data-score="a">
+<option value="0">Severe decrease</option>
+<option value="1">Moderate decrease</option>
+<option value="2">No decrease</option>
+</select>
+</div>
+<!-- B: Weight loss -->
+<div class="field">
+<label>Weight loss (past 3 months)</label>
+<select class="mna-input" data-score="b">
+<option value="0">&gt; 6 lbs</option>
+<option value="1">3–6 lbs</option>
+<option value="2">No weight loss</option>
+</select>
+</div>
+<!-- C: Mobility -->
+<div class="field">
+<label>Mobility</label>
+<select class="mna-input" data-score="c">
+<option value="0">Bed or chair bound</option>
+<option value="1">Able to get out of bed/chair but does not go out</option>
+<option value="2">Goes out</option>
+</select>
+</div>
+<!-- D: Stress / illness -->
+<div class="field">
+<label>Psychological stress or acute illness (past 3 months)</label>
+<select class="mna-input" data-score="d">
+<option value="0">Yes</option>
+<option value="2">No</option>
+</select>
+</div>
+<!-- E: Neuropsych -->
+<div class="field">
+<label>Neuropsychological problems</label>
+<select class="mna-input" data-score="e">
+<option value="0">Severe dementia or depression</option>
+<option value="1">Mild dementia</option>
+<option value="2">No psychological problems</option>
+</select>
+</div>
+<!-- F: BMI -->
+<div class="field">
+<label>BMI</label>
+<select class="mna-input" data-score="f">
+<option value="0">&lt; 19</option>
+<option value="1">19–21</option>
+<option value="2">21–23</option>
+<option value="3">&gt; 23</option>
+</select>
+</div>
+</div>
+<!-- SCORE DISPLAY -->
+<div class="clinical-guide">
+<div class="guide-title">MNA-SF Score</div>
+<div class="guide-row">
+<span>Total Score</span>
+<span class="guide-badge" id="mnaTotal">0</span>
+</div>
+</div>
+<!-- INTERPRETATION -->
+<div class="clinical-guide">
+<div class="guide-title">Clinical Interpretation</div>
+<div class="guide-row">
+<span>12–14</span>
+<span class="guide-badge guide-good">Normal</span>
+</div>
+<div class="guide-row">
+<span>8–11</span>
+<span class="guide-badge guide-mid">At risk</span>
+</div>
+<div class="guide-row">
+<span>0–7</span>
+<span class="guide-badge guide-high">Malnourished</span>
+</div>
+</div>
+</div>
+<div class="card test-card">
+<h2 class="test-title">Diet Quality</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+        Ask about typical daily intake with emphasis on protein, fruits and vegetables,
+        meal consistency, and overall appetite. Use best clinical judgment if intake is unclear.
+      </div>
+<div class="form-grid">
+<div class="field">
+<label for="proteinIntake">Protein intake</label>
+<select id="proteinIntake">
+<option>Low</option>
+<option selected="">Moderate</option>
+<option>High</option>
+</select>
+</div>
+<div class="field">
+<label for="fruitVegIntake">Fruit &amp; vegetable intake</label>
+<select id="fruitVegIntake">
+<option>Low</option>
+<option>Moderate</option>
+<option>High</option>
+</select>
+</div>
+<div class="field">
+<label for="mealFrequency">Meal frequency</label>
+<select id="mealFrequency">
+<option>1–2 meals/day</option>
+<option>3 meals/day</option>
+<option>3+ meals/day</option>
+</select>
+</div>
+<div class="field">
+<label for="appetiteLevel">Appetite</label>
+<select id="appetiteLevel">
+<option>Poor</option>
+<option>Fair</option>
+<option>Good</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Insight</div>
+<div class="guide-row">
+<span>Low protein intake</span>
+<span class="guide-badge guide-high">Muscle loss risk</span>
+</div>
+<div class="guide-row">
+<span>Low fruits/vegetables</span>
+<span class="guide-badge guide-mid">Micronutrient concern</span>
+</div>
+<div class="guide-row">
+<span>Irregular meals</span>
+<span class="guide-badge guide-mid">Energy intake concern</span>
+</div>
+</div>
+</div>
+<div class="card test-card">
+<h2 class="test-title">Hydration</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+        Estimate average daily fluid intake and assess for dehydration symptoms such as
+        dizziness, dry mouth, fatigue, constipation, or dark urine.
+      </div>
+<div class="form-grid">
+<div class="field">
+<label for="fluidIntake">Daily fluid intake</label>
+<select id="fluidIntake">
+<option>&lt; 4 cups</option>
+<option>4–6 cups</option>
+<option>6–8 cups</option>
+<option>&gt; 8 cups</option>
+</select>
+</div>
+<div class="field">
+<label for="nutritionHydrationConcern">Hydration concern</label>
+<select id="nutritionHydrationConcern">
+<option>No</option>
+<option>Yes</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Reference</div>
+<div class="guide-row">
+<span>&lt; 4 cups/day</span>
+<span class="guide-badge guide-high">High dehydration risk</span>
+</div>
+<div class="guide-row">
+<span>4–6 cups/day</span>
+<span class="guide-badge guide-mid">Moderate risk</span>
+</div>
+<div class="guide-row">
+<span>6–8+ cups/day</span>
+<span class="guide-badge guide-good">Adequate hydration</span>
+</div>
+</div>
+</div>
+<div class="card test-card">
+<h2 class="test-title">Weight &amp; Intake Changes</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+        Ask about unintentional weight loss and any recent decline in food intake
+        over the last 3 months.
+      </div>
+<div class="form-grid">
+<div class="field">
+<label for="recentWeightLoss">Recent weight loss</label>
+<select id="recentWeightLoss">
+<option>No</option>
+<option>1–5 lbs</option>
+<option>5–10 lbs</option>
+<option>&gt; 10 lbs</option>
+</select>
+</div>
+<div class="field">
+<label for="intakeChange">Change in intake</label>
+<select id="intakeChange">
+<option>No change</option>
+<option>Moderate decrease</option>
+<option>Severe decrease</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Insight</div>
+<div class="guide-row">
+<span>&gt; 5–10 lb loss</span>
+<span class="guide-badge guide-high">High risk</span>
+</div>
+<div class="guide-row">
+<span>Reduced intake</span>
+<span class="guide-badge guide-mid">Monitor closely</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="screen" id="homeSafety">
+<div class="topbar">
+<div>
+<h1 class="page-title">Home Safety Assessment</h1>
+<div class="page-subtitle">Step 6 of 7</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="nutrition">Back</button>
+<button class="btn btn-primary" data-target="mental">Next</button>
+</div>
+</div>
+<div class="stepper"><button class="step" data-target="mobility">Mobility</button><button class="step" data-target="driving">Driving</button><button class="step" data-target="processing">Processing Speed</button><button class="step" data-target="cognition">Cognition</button><button class="step" data-target="nutrition">Nutrition</button><button class="step current" data-target="homeSafety">Home Safety</button><button class="step" data-target="mental">Mental Wellbeing</button><button class="step" data-target="review">Review</button></div>
+<div class="grid">
+<!-- ENTRY / EXTERIOR -->
+<div class="card test-card">
+<h2 class="test-title">Entry / Exterior</h2>
+<div class="form-grid">
+<div class="field">
+<label>Steps have handrails</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Pathways clear and even</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Outdoor lighting adequate</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+</div>
+</div>
+<!-- LIVING AREAS -->
+<div class="card test-card">
+<h2 class="test-title">Living Areas</h2>
+<div class="form-grid">
+<div class="field">
+<label>Walkways free of clutter</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Rugs secured / non-slip</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Lighting adequate</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Furniture stable and supportive</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+</div>
+</div>
+<!-- BATHROOM -->
+<div class="card test-card">
+<h2 class="test-title">Bathroom</h2>
+<div class="form-grid">
+<div class="field">
+<label>Grab bars installed</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Non-slip mats in shower/tub</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Raised toilet or support available</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Easy access to bathroom at night</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+</div>
+</div>
+<!-- BEDROOM -->
+<div class="card test-card">
+<h2 class="test-title">Bedroom</h2>
+<div class="form-grid">
+<div class="field">
+<label>Bed height appropriate</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Clear path to bathroom</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Night lighting available</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+</div>
+</div>
+<!-- KITCHEN -->
+<div class="card test-card">
+<h2 class="test-title">Kitchen</h2>
+<div class="form-grid">
+<div class="field">
+<label>Frequently used items within reach</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>No need for step stool</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Floor free of hazards</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+</div>
+</div>
+<!-- GENERAL SAFETY -->
+<div class="card test-card">
+<h2 class="test-title">General Safety</h2>
+<div class="form-grid">
+<div class="field">
+<label>Smoke detectors functional</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Emergency plan in place</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+<div class="field">
+<label>Phone or alert system accessible</label>
+<select><option>Yes</option><option>No</option></select>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="screen" id="mental">
+<div class="topbar">
+<div>
+<h1 class="page-title">Mental Wellbeing Assessment</h1>
+<div class="page-subtitle">Step 6 of 6</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="homeSafety">Back</button>
+<button class="btn btn-primary" data-target="review">Next</button>
+</div>
+</div>
+<div class="stepper"><button class="step" data-target="mobility">Mobility</button><button class="step" data-target="driving">Driving</button><button class="step" data-target="processing">Processing Speed</button><button class="step" data-target="cognition">Cognition</button><button class="step" data-target="nutrition">Nutrition</button><button class="step" data-target="homeSafety">Home Safety</button><button class="step current" data-target="mental">Mental Wellbeing</button><button class="step" data-target="review">Review</button></div>
+<div class="grid">
+<div class="card test-card">
+<h2 class="test-title">PHQ-2 (Depression Screening)</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+        Over the last 2 weeks, how often has the patient been bothered by the following problems?
+      </div>
+<div class="form-grid">
+<div class="field">
+<label>Little interest or pleasure in doing things</label>
+<select class="phq2-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Feeling down, depressed, or hopeless</label>
+<select class="phq2-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">PHQ-2 Score</div>
+<div class="guide-row">
+<span>Total</span>
+<span class="guide-badge" id="phq2Total">0</span>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Interpretation</div>
+<div class="guide-row">
+<span>0–2</span>
+<span class="guide-badge guide-good">Negative screen</span>
+</div>
+<div class="guide-row">
+<span>≥ 3</span>
+<span class="guide-badge guide-high">Positive screen → show PHQ-9</span>
+</div>
+</div>
+</div>
+<div class="card test-card conditional-block hidden" id="phq9Followup">
+<h2 class="test-title">PHQ-9 Follow-Up</h2>
+<div class="instructions">
+<strong>Follow-up:</strong><br/>
+        Complete the full PHQ-9 because the PHQ-2 screen was positive.
+      </div>
+<div class="form-grid">
+<div class="field">
+<label>Little interest or pleasure in doing things</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Feeling down, depressed, or hopeless</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Trouble falling or staying asleep, or sleeping too much</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Feeling tired or having little energy</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Poor appetite or overeating</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Feeling bad about yourself — or that you are a failure</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Trouble concentrating on things</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Moving or speaking slowly, or being fidgety/restless</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Thoughts that you would be better off dead or of hurting yourself</label>
+<select class="phq9-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">PHQ-9 Score</div>
+<div class="guide-row">
+<span>Total</span>
+<span class="guide-badge" id="phq9Total">0</span>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Interpretation</div>
+<div class="guide-row"><span>0–4</span><span class="guide-badge guide-good">Minimal</span></div>
+<div class="guide-row"><span>5–9</span><span class="guide-badge guide-mid">Mild</span></div>
+<div class="guide-row"><span>10–14</span><span class="guide-badge guide-mid">Moderate</span></div>
+<div class="guide-row"><span>15–19</span><span class="guide-badge guide-high">Moderately severe</span></div>
+<div class="guide-row"><span>20–27</span><span class="guide-badge guide-high">Severe</span></div>
+</div>
+</div>
+<div class="card test-card">
+<h2 class="test-title">GAD-2 (Anxiety Screening)</h2>
+<div class="instructions">
+<strong>Administration Instructions:</strong><br/>
+        Over the last 2 weeks, how often has the patient been bothered by the following problems?
+      </div>
+<div class="form-grid">
+<div class="field">
+<label>Feeling nervous, anxious, or on edge</label>
+<select class="gad2-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Not being able to stop or control worrying</label>
+<select class="gad2-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">GAD-2 Score</div>
+<div class="guide-row">
+<span>Total</span>
+<span class="guide-badge" id="gad2Total">0</span>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Interpretation</div>
+<div class="guide-row">
+<span>0–2</span>
+<span class="guide-badge guide-good">Negative screen</span>
+</div>
+<div class="guide-row">
+<span>≥ 3</span>
+<span class="guide-badge guide-high">Positive screen → show GAD-7</span>
+</div>
+</div>
+</div>
+<div class="card test-card conditional-block hidden" id="gad7Followup">
+<h2 class="test-title">GAD-7 Follow-Up</h2>
+<div class="instructions">
+<strong>Follow-up:</strong><br/>
+        Complete the full GAD-7 because the GAD-2 screen was positive.
+      </div>
+<div class="form-grid">
+<div class="field">
+<label>Feeling nervous, anxious, or on edge</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Not being able to stop or control worrying</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Worrying too much about different things</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Trouble relaxing</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Being so restless that it is hard to sit still</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Becoming easily annoyed or irritable</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+<div class="field">
+<label>Feeling afraid as if something awful might happen</label>
+<select class="gad7-input">
+<option value="0">Not at all</option>
+<option value="1">Several days</option>
+<option value="2">More than half the days</option>
+<option value="3">Nearly every day</option>
+</select>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">GAD-7 Score</div>
+<div class="guide-row">
+<span>Total</span>
+<span class="guide-badge" id="gad7Total">0</span>
+</div>
+</div>
+<div class="clinical-guide">
+<div class="guide-title">Clinical Interpretation</div>
+<div class="guide-row"><span>0–4</span><span class="guide-badge guide-good">Minimal</span></div>
+<div class="guide-row"><span>5–9</span><span class="guide-badge guide-mid">Mild</span></div>
+<div class="guide-row"><span>10–14</span><span class="guide-badge guide-mid">Moderate</span></div>
+<div class="guide-row"><span>15–21</span><span class="guide-badge guide-high">Severe</span></div>
+</div>
+</div>
+</div>
+</section>
+<section class="screen" id="review">
+<div class="topbar">
+<div>
+<h1 class="page-title">Review Assessment</h1>
+<div class="page-subtitle">Confirm all domain sections before generating the report.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="mental">Back</button>
+<button class="btn btn-primary" data-target="results">Generate Results</button>
+</div>
+</div><div class="stepper"><button class="step" data-target="mobility">Mobility</button><button class="step" data-target="driving">Driving</button><button class="step" data-target="processing">Processing Speed</button><button class="step" data-target="cognition">Cognition</button><button class="step" data-target="nutrition">Nutrition</button><button class="step" data-target="homeSafety">Home Safety</button><button class="step" data-target="mental">Mental Wellbeing</button><button class="step current" data-target="review">Review</button></div>
+<div class="grid grid-2">
+<div class="card"><h3>Mobility</h3><p>Tests completed.</p></div><div class="card"><h3>Driving &amp; Community Mobility</h3><p>Driving-related screening factors reviewed.</p></div>
+<div class="card"><h3>Processing Speed</h3><p>Reaction and inhibition screening completed.</p></div>
+<div class="card"><h3>Cognition</h3><p>Mini-Cog, clock drawing, Trail Making, and Digit Span captured.</p></div>
+<div class="card"><h3>Nutrition</h3><p>Nutrition screening recorded.</p></div>
+<div class="card"><h3>Home Safety</h3><p>Safety checklist reviewed.</p></div>
+<div class="card"><h3>Mental Wellbeing</h3><p>PHQ-2 and GAD-2 captured.</p></div>
+</div>
+</section>
+<section class="screen" id="results">
+<div class="topbar">
+<div>
+<h1 class="page-title">Assessment Results</h1>
+<div class="page-subtitle">Composite score, risk interpretation, referral guidance, and recommended next steps.</div>
+</div>
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="review">Back</button>
+<button class="btn btn-secondary" data-target="printSeniorReport">Senior / Family Report</button>
+<button class="btn btn-secondary" data-target="printClinicalReport">Clinical Report</button>
+</div>
+</div>
+<div class="card hero-score">
+<div>
+<div class="muted-label">Thrive Index</div>
+<div class="score-display" id="overallScore">75</div>
+<div class="score-pill yellow" id="scorePill">Mild Risk</div>
+</div>
+<div class="results-summary">
+<p id="resultsSummary">
+        Your current profile shows mild risk for loss of independence, driven mainly by nutrition and cognition concerns.
+      </p>
+<div class="alert-list" id="resultsAlerts">
+<div class="alert alert-warn">Nutrition risk detected.</div>
+<div class="alert alert-warn">Cognitive screening concern detected.</div>
+<div class="alert alert-info">Reassessment recommended in 8–12 weeks after intervention.</div>
+</div>
+</div>
+</div>
+<div class="grid grid-2 mt-18">
+<div class="card">
+<div class="muted-label">Domain Breakdown</div>
+<div class="metric-row">
+<div class="metric-label">Mobility</div>
+<div class="bar"><span class="green" id="bar-mobility" style="width:82%"></span></div>
+<div class="stat" id="stat-mobility">82</div>
+</div>
+<div class="metric-row">
+<div class="metric-label">Driving</div>
+<div class="bar"><span class="yellow" id="bar-driving" style="width:80%"></span></div>
+<div class="stat" id="stat-driving">80</div>
+</div>
+<div class="metric-row">
+<div class="metric-label">Processing Speed</div>
+<div class="bar"><span class="yellow" id="bar-processing" style="width:80%"></span></div>
+<div class="stat" id="stat-processing">80</div>
+</div>
+<div class="metric-row">
+<div class="metric-label">Cognition</div>
+<div class="bar"><span class="orange" id="bar-cognition" style="width:52%"></span></div>
+<div class="stat" id="stat-cognition">52</div>
+</div>
+<div class="metric-row">
+<div class="metric-label">Nutrition</div>
+<div class="bar"><span class="red" id="bar-nutrition" style="width:49%"></span></div>
+<div class="stat" id="stat-nutrition">49</div>
+</div>
+<div class="metric-row">
+<div class="metric-label">Home Safety</div>
+<div class="bar"><span class="green" id="bar-home" style="width:100%"></span></div>
+<div class="stat" id="stat-home">100</div>
+</div>
+<div class="metric-row">
+<div class="metric-label">Mental Wellbeing</div>
+<div class="bar"><span class="green" id="bar-mental" style="width:95%"></span></div>
+<div class="stat" id="stat-mental">95</div>
+</div>
+</div>
+<div class="card">
+<div class="muted-label">Priority Recommendations</div>
+<div class="priority-list">
+<div class="priority">
+<strong>Address lowest scoring domains first</strong>
+<div class="small">Start with the areas contributing most to current risk.</div>
+</div>
+<div class="priority">
+<strong>Consider referral needs</strong>
+<div class="small">Use the referral section to guide next clinical steps.</div>
+</div>
+<div class="priority">
+<strong>Print and save the report</strong>
+<div class="small">Open the Clinical Report and save it as a PDF for your records.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-2 mt-18">
+<div class="card">
+<div class="muted-label">Top Risk Drivers</div>
+<div class="priority-list" id="topRiskDrivers">
+<div class="priority">
+<strong>Nutrition decline</strong>
+<div class="small">Screening results suggest elevated nutrition risk that may reduce strength and resilience.</div>
+</div>
+<div class="priority">
+<strong>Cognitive screening concern</strong>
+<div class="small">Cognitive findings suggest the need for monitoring and possible follow-up assessment.</div>
+</div>
+<div class="priority">
+<strong>Functional reserve risk</strong>
+<div class="small">Nutrition and cognition together may increase vulnerability during illness or stress.</div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="muted-label">Recommended Referrals</div>
+<div class="priority-list" id="recommendedReferrals">
+<div class="priority">
+<strong>Primary care follow-up</strong>
+<div class="small">Review overall screening results, recent nutrition changes, and cognitive concerns.</div>
+</div>
+<div class="priority">
+<strong>Nutrition support</strong>
+<div class="small">Consider dietary counseling if poor intake, weight loss, or low MNA-SF is present.</div>
+</div>
+<div class="priority">
+<strong>Cognitive follow-up</strong>
+<div class="small">Consider expanded assessment if cognition concerns persist or function declines.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-2 mt-18">
+<div class="card">
+<div class="muted-label">Priority Flags</div>
+<div class="priority-list" id="priorityFlags">
+<div class="priority">
+<strong>Nutrition risk</strong>
+<div class="small">Current screening suggests need for closer attention to intake, weight trend, and resilience.</div>
+</div>
+<div class="priority">
+<strong>Cognitive concern</strong>
+<div class="small">Screening result suggests monitoring and follow-up may be appropriate.</div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="muted-label">Immediate Clinical Priorities</div>
+<div class="choice-group" id="immediateClinicalPriorities"></div>
+</div>
+</div>
+<div class="grid grid-2 mt-18">
+<div class="card">
+<div class="muted-label">Reassessment Timeline</div>
+<div class="priority-list">
+<div class="priority">
+<strong>2–4 weeks</strong>
+<div class="small">Use if significant nutrition decline, acute illness, or rapid functional change is present.</div>
+</div>
+<div class="priority">
+<strong>8–12 weeks</strong>
+<div class="small">Recommended standard reassessment window after intervention.</div>
+</div>
+<div class="priority">
+<strong>3–6 months</strong>
+<div class="small">Use for maintenance follow-up if progress is stable.</div>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="muted-label">Clinical Summary</div>
+<p id="clinicalSummaryBlock">
+        Client demonstrates mild overall functional risk with greatest deficits in nutrition and cognition. Mobility, home safety, and mental wellbeing are relatively stronger areas at this time. Early intervention focused on intake quality, nutrition support, and ongoing cognitive monitoring may reduce future decline risk.
+      </p>
+</div>
+</div>
+</section>
+<section class="screen report-print" id="printSeniorReport">
+
+<div class="topbar no-print">
+<div>
+<h1 class="page-title">Senior / Family Report</h1>
+<div class="page-subtitle">Plain-language summary for printing and sharing.</div>
+</div>
+
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="results">Back</button>
+<button class="btn btn-primary" onclick="window.print()">Print Report</button>
+</div>
+</div>
+
+<div class="report-page senior enhanced-senior-report">
+
+  <div class="report-header senior-header">
+
+    <div class="report-header-left">
+<div class="report-brand">THRIVE360</div>
+
+<div class="report-tagline">
+  Because Independence Matters.
+</div>
+
+<h1 class="report-title">
+  Your Thrive360 Summary
+</h1>
+
+      <div class="report-meta">
+        <div><strong>Client:</strong> <span id="reportClientName">Client</span></div>
+        <div><strong>Date:</strong> <span id="reportAssessmentDate">Not provided</span></div>
+      </div>
+    </div>
+
+    <div class="report-header-right">
+
+    </div>
+
+    <div class="report-score-card">
+      <div class="report-score-label">Thrive Index</div>
+      <div class="report-score-value" id="reportOverallScore">67</div>
+      <div class="report-score-pill moderate" id="reportOverallRisk">Moderate Risk</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="report-section senior-meaning-card">
+<h2>What this means</h2>
+<p id="seniorSummaryText">
+Your results show a moderate risk for loss of independence.
+</p>
+</div>
+
+<div class="report-section">
+<h2>Your Wellness Snapshot</h2>
+<div class="senior-domain-card-grid" id="seniorDomainCards"></div>
+</div>
+
+<div class="report-grid two-col">
+
+<div class="report-section">
+<h2>Strongest areas</h2>
+<ul class="report-list" id="seniorStrengthsList">
+<li>Strengths will populate here.</li>
+</ul>
+</div>
+
+<div class="report-section">
+<h2>Areas to work on</h2>
+<ul class="report-list" id="seniorNeedsList">
+<li>Needs will populate here.</li>
+</ul>
+</div>
+
+</div>
+
+<div class="report-section senior-focus-card">
+<h2>Top 3 things to focus on</h2>
+<div id="seniorTopFocusList"></div>
+</div>
+
+<div class="report-section">
+<h2>Recommended next steps</h2>
+<div id="seniorActionsList"></div>
+</div>
+
+<div class="report-grid two-col">
+
+<div class="report-section">
+<h2>Call a healthcare professional if needed</h2>
+<ul class="report-list" id="seniorTalkList">
+<li>Guidance will populate here.</li>
+</ul>
+</div>
+
+<div class="report-section">
+<h2>Follow-up plan</h2>
+<p id="seniorFollowupText">Follow-up guidance will populate here.</p>
+</div>
+
+</div>
+<div class="report-disclaimer">
+  <strong>Disclaimer:</strong>
+  Thrive Independence Index™ is a screening tool and is not intended
+  to diagnose disease or replace professional evaluation.
+</div>
+
+<div class="report-company-footer">
+
+  <div class="footer-left">
+
+    <img
+      src="logo.png"
+      alt="SPOT Rehab Logo"
+      class="footer-logo"
+    >
+
+    <div class="footer-company-info">
+
+      <div class="footer-company-name">
+        SPOT Rehab
+      </div>
+
+      <div class="footer-tagline">
+        Speech, Physical &amp; Occupational Therapy
+      </div>
+
+      <div class="footer-services">
+        Home Health Care • Fall Prevention • Outpatient Rehabilitation • Pediatric Therapy
+      </div>
+
+
+
+      <div class="footer-motto">
+        "Caring Beyond Expectations"
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="footer-right">
+
+    <div class="footer-contact-title">
+      Contact Information
+    </div>
+
+    <div>
+      <strong>Phone:</strong> (320) 259-4151
+    </div>
+
+    <div>
+      <strong>Email:</strong> spot@spot-rehab.com
+    </div>
+
+    <div>
+      <strong>Website:</strong> www.spotrehab.com
+    </div>
+
+  </div>
+
+</div>
+
+</section>
+<section class="screen report-print" id="printClinicalReport">
+
+<div class="topbar no-print">
+<div>
+<h1 class="page-title">Clinical Report</h1>
+<div class="page-subtitle">Detailed interpretation for provider / professional use.</div>
+</div>
+
+<div class="toolbar">
+<button class="btn btn-secondary" data-target="results">Back</button>
+<button class="btn btn-primary" onclick="window.print()">Print Report</button>
+</div>
+</div>
+
+<div class="report-page clinical enhanced-report">
+
+  <!-- PAGE 1: EXECUTIVE SUMMARY -->
+  <div class="report-page-section">
+
+    <div class="report-header clinical-header">
+
+      <div class="report-header-left">
+
+<div class="report-brand">
+  THRIVE360
+</div>
+
+<div class="report-tagline">
+  Because Independence Matters.
+</div>
+
+<h1 class="report-title">
+  Clinical Assessment Report
+</h1>
+
+        <div class="report-meta">
+          <div>
+            <strong>Client:</strong>
+            <span id="clinicalClientName">Client</span>
+          </div>
+
+          <div>
+            <strong>Date:</strong>
+            <span id="clinicalAssessmentDate">Not provided</span>
+          </div>
+
+          <div>
+            <strong>Assessment Type:</strong>
+            Comprehensive Wellness / Functional Screening
+          </div>
+        </div>
+
+      </div>
+
+      <div class="report-score-card">
+
+        <div class="report-score-label">
+          Thrive Index
+        </div>
+
+        <div
+          class="report-score-value"
+          id="clinicalOverallScore"
+        >
+          67
+        </div>
+
+        <div
+          class="report-score-pill moderate"
+          id="clinicalOverallRisk"
+        >
+          Moderate Risk
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="report-section summary-card">
+      <h2>Executive Clinical Summary</h2>
+
+      <p id="clinicalSummaryText">
+        Composite profile indicates moderate overall risk.
+      </p>
+    </div>
+
+<div class="report-section">
+<h2>Domain Snapshot</h2>
+<div class="domain-card-grid" id="clinicalDomainCards"></div>
+</div>
+
+<div class="report-section">
+<h2>Domain Score Profile</h2>
+<div id="clinicalDomainBars"></div>
+</div>
+
+<div class="report-grid two-col">
+<div class="report-section">
+<h2>Key Risk Drivers</h2>
+<ul class="report-list" id="clinicalDriverList">
+<li>Risk drivers will populate here.</li>
+</ul>
+</div>
+
+<div class="report-section">
+<h2>Clinical Recommendations</h2>
+<ul class="report-list recommendation-list" id="clinicalRecommendationsList">
+<li>Recommendations will populate here.</li>
+</ul>
+</div>
+</div>
+
+</div>
+
+<!-- PAGE 2: DETAILED TEST RESULTS -->
+<div class="report-page-section">
+<div class="report-section">
+<h2>Detailed Test Results</h2>
+<p class="report-muted">
+Individual test findings are grouped by clinical domain. Results should be interpreted within the full clinical context.
+</p>
+
+<div id="clinicalDetailedTestResults">
+<table class="report-table">
+<thead>
+<tr>
+<th>Domain</th>
+<th>Test / Measure</th>
+<th>Result</th>
+<th>Clinical Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="4">Detailed test results will populate here.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<!-- PAGE 3: PLAN AND DOCUMENTATION -->
+<div class="report-page-section">
+
+<div class="report-grid two-col">
+<div class="report-section">
+<h2>Referral Considerations</h2>
+<ul class="report-list" id="clinicalReferralList">
+<li>Referral considerations will populate here.</li>
+</ul>
+</div>
+
+<div class="report-section">
+<h2>Recommended Interventions</h2>
+<ul class="report-list" id="clinicalInterventionsList">
+<li>Recommended interventions will populate here.</li>
+</ul>
+</div>
+</div>
+
+<div class="report-grid two-col">
+<div class="report-section">
+<h2>Reassessment Plan</h2>
+<ul class="report-list" id="clinicalReassessmentList">
+<li>Reassessment guidance will populate here.</li>
+</ul>
+</div>
+
+<div class="report-section">
+<h2>Clinical Documentation Summary</h2>
+<p id="clinicalDocumentationSummary">
+Documentation summary will populate here.
+</p>
+</div>
+</div>
+
+<div class="report-footer-block">
+
+<div class="report-disclaimer">
+  <strong>Disclaimer:</strong>
+  Thrive Independence Index™ is a screening tool and is not intended
+  to diagnose disease or replace professional evaluation.
+</div>
+
+<div class="report-company-footer">
+
+  <div class="footer-left">
+
+    <img
+      src="logo.png"
+      alt="SPOT Rehab Logo"
+      class="footer-logo"
+    >
+
+    <div class="footer-company-info">
+
+      <div class="footer-company-name">
+        SPOT Rehab
+      </div>
+
+      <div class="footer-tagline">
+        Speech, Physical &amp; Occupational Therapy
+      </div>
+
+      <div class="footer-services">
+        Home Health Care • Fall Prevention • Outpatient Rehabilitation  • Pediatric Therapy
+      </div>
+
+     
+
+      <div class="footer-motto">
+        "Caring Beyond Expectations"
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="footer-right">
+
+    <div class="footer-contact-title">
+      Contact Information
+    </div>
+
+    <div>
+      <strong>Phone:</strong> (320) 259-4151
+    </div>
+
+    <div>
+      <strong>Email:</strong> spot@spot-rehab.com
+    </div>
+
+    <div>
+      <strong>Website:</strong> www.spotrehab.com
+    </div>
+
+  </div>
+
+</div>
+
+</section>
+</main>
+</div>
+
+<footer class="global-footer">
+  <div class="footer-inner">
+    <img alt="Company Logo" class="footer-logo" src="logo.png"/>
+
+    <div class="footer-brand-block">
+      <div class="footer-powered">Powered by</div>
+      <div class="footer-company-name">SPOT Rehab</div>
+    </div>
+  </div>
+</footer>
+<script src="appV2.js?v=24"></script>
+</body>
+</html>
