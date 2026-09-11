@@ -1703,6 +1703,7 @@ body {
 .review-readiness-warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
 .mental-safety-alert { margin-top:18px; padding:16px; border:2px solid #ef4444; border-radius:14px; background:#fef2f2; color:#991b1b; line-height:1.5; }
 .draft-status { position:fixed; right:18px; bottom:18px; z-index:50; display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; border:1px solid #cbd5e1; background:rgba(255,255,255,.96); box-shadow:0 8px 24px rgba(15,23,42,.12); color:#475569; font-size:12px; font-weight:700; }
+.report-mode .draft-status { display:none; }
 .draft-clear { appearance:none; border:0; background:transparent; color:var(--primary); font:inherit; cursor:pointer; padding:0; }
 .btn:disabled { opacity:.5; cursor:not-allowed; }
 
@@ -1713,3 +1714,12 @@ body {
   .review-domain-card .btn { width:100%; }
   .draft-status { left:12px; right:12px; bottom:12px; justify-content:space-between; }
 }
+
+
+@media print {
+  .draft-status,
+  .no-print {
+    display: none !important;
+  }
+}
+
