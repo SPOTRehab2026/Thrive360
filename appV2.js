@@ -118,6 +118,10 @@ function showScreen(id) {
     console.warn("Screen not found:", id);
   }
 
+  // Keep the fixed autosave control out of the report view so it never
+  // covers the Print Report controls or the bottom of a printable report.
+  document.body.classList.toggle("report-mode", !!nextScreen?.classList.contains("report-print"));
+
   document.querySelectorAll(".step").forEach((step) => {
     step.classList.remove("current");
     if (step.getAttribute("data-target") === id) {
@@ -2745,3 +2749,4 @@ document.addEventListener("DOMContentLoaded", () => {
   updateReviewScreen();
   showScreen("hero");
 });
+
