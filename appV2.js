@@ -588,40 +588,6 @@ function bindGoNoGoTest() {
   }
 }
 
-function updateDriverResponseTime() {
-  const perception = getNumber("perceptionThinkingTime", 0);
-  const physical = getNumber("physicalReactionTime", 0);
-  const totalEl = getEl("totalDriverResponseTime");
-  const interpretationEl = getEl("driverResponseInterpretation");
-  if (!totalEl || !interpretationEl) return;
-
-  if (perception > 0 && physical > 0) {
-    const total = Math.round((perception + physical) * 100) / 100;
-    totalEl.value = total.toFixed(2);
-
-    const perceptionStatus = perception < 0.75 ? "Below reference" : perception <= 1.75 ? "Within reference" : "Above reference";
-    const physicalStatus = physical < 0.5 ? "Below reference" : physical <= 1.0 ? "Within reference" : "Above reference";
-    const totalStatus = total < 1.25 ? "Below reference" : total <= 2.75 ? "Within reference" : "Above reference";
-
-    let pattern = "Both components are within the stated reference ranges.";
-    if (perception > 1.75 && physical <= 1.0) pattern = "Delay is primarily in perception/thinking time.";
-    else if (physical > 1.0 && perception <= 1.75) pattern = "Delay is primarily in physical reaction time.";
-    else if (perception > 1.75 && physical > 1.0) pattern = "Both perception/thinking and physical reaction components are above reference.";
-
-    interpretationEl.innerHTML = `
-      <div class="driver-response-status-grid">
-        <div><strong>Perception / thinking:</strong> ${perception.toFixed(2)} sec — ${perceptionStatus}</div>
-        <div><strong>Physical reaction:</strong> ${physical.toFixed(2)} sec — ${physicalStatus}</div>
-        <div><strong>Total response:</strong> ${total.toFixed(2)} sec — ${totalStatus}</div>
-      </div>
-      <div class="driver-response-pattern"><strong>Pattern:</strong> ${pattern}</div>
-    `;
-  } else {
-    totalEl.value = "0";
-    interpretationEl.textContent = "Enter both component times to calculate total driver response time.";
-  }
-}
-
 function calculateProcessingScore() {
   const simpleAvg = getNumber("simpleRtAvg", 0);
   const simpleMisses = getNumber("simpleRtMisses", 0);
@@ -655,6 +621,70 @@ inhibitionScore -= falseTaps * 8;
 inhibitionScore -= goMisses * 8;
 scores.push(clamp(inhibitionScore));
   return scores.length ? round(average(scores)) : 80;
+}
+
+function getProcessingSpeedProfile() {
+  const simpleMs = getNumber("simpleRtAvg", 0);
+  const choiceMs = getNumber("choiceRtAvg", 0);
+  const simpleMisses = getNumber("simpleRtMisses", 0);
+  const choiceErrors = getNumber("choiceRtErrors", 0);
+  const choiceMisses = getNumber("choiceRtMisses", 0);
+  const falseTaps = getNumber("goNoGoFalseTaps", 0);
+  const goMisses = getNumber("goNoGoMisses", 0);
+  const inhibitionErrors = falseTaps + goMisses;
+
+  const simpleSec = simpleMs > 0 ? simpleMs / 1000 : 0;
+  const choiceSec = choiceMs > 0 ? choiceMs / 1000 : 0;
+  const choiceCostSec = simpleSec > 0 && choiceSec > 0 ? choiceSec - simpleSec : 0;
+
+  let simpleText = "Not completed";
+  if (simpleMs > 0) {
+    if (simpleMs > 650) simpleText = "Slowed basic response speed";
+    else if (simpleMs >= 450) simpleText = "Mild response-speed slowing / variability";
+    else simpleText = "Faster basic response speed";
+  }
+
+  let choiceText = "Not completed";
+  if (choiceMs > 0) {
+    if (choiceMs > 950) choiceText = "Slowed response selection";
+    else if (choiceMs >= 700) choiceText = "Mild response-selection slowing / variability";
+    else choiceText = "Faster response selection";
+  }
+
+  let inhibitionText = "Not completed";
+  if (simpleMs > 0 || choiceMs > 0 || inhibitionErrors > 0) {
+    if (inhibitionErrors >= 4) inhibitionText = "Executive control concern";
+    else if (inhibitionErrors >= 2) inhibitionText = "Monitor inhibition / response control";
+    else inhibitionText = "Lower inhibition concern";
+  }
+
+  let pattern = "Complete the processing tasks to identify the response-speed pattern.";
+  if (simpleMs > 0 || choiceMs > 0 || inhibitionErrors > 0) {
+    const parts = [];
+    if (simpleMs > 650 && choiceMs > 950) parts.push("basic response speed and response selection are both slowed");
+    else if (simpleMs > 650 && choiceMs > 0 && choiceMs <= 950) parts.push("basic response speed is slower, without a disproportionate choice-response delay");
+    else if (choiceMs > 950 && simpleMs > 0 && simpleMs <= 650) parts.push("response selection/decision demand appears more limiting than basic response speed");
+    else if (choiceMs > 0 && simpleMs > 0) parts.push("response selection adds processing demand beyond the basic reaction task");
+    else if (simpleMs > 0) parts.push("basic response speed was screened");
+    else if (choiceMs > 0) parts.push("response selection speed was screened");
+    if (inhibitionErrors > 0) parts.push(`${inhibitionErrors} Go/No-Go error${inhibitionErrors === 1 ? "" : "s"} add an inhibitory-control/accuracy concern`);
+    pattern = parts.join("; ") + ".";
+  }
+
+  return { simpleMs, choiceMs, simpleSec, choiceSec, choiceCostSec, simpleMisses, choiceErrors, choiceMisses, inhibitionErrors, simpleText, choiceText, inhibitionText, pattern };
+}
+
+function updateProcessingSpeedSummary() {
+  const el = getEl("processingSpeedSummary");
+  if (!el) return;
+  const p = getProcessingSpeedProfile();
+  const rows = [];
+  if (p.simpleMs > 0) rows.push(`<div class="metric-row"><div><strong>Simple reaction</strong><span>${p.simpleSec.toFixed(2)} sec average</span></div><span class="guide-badge ${p.simpleMs > 650 ? "guide-high" : p.simpleMs >= 450 ? "guide-mid" : "guide-good"}">${p.simpleText}</span></div>`);
+  if (p.choiceMs > 0) rows.push(`<div class="metric-row"><div><strong>Choice reaction</strong><span>${p.choiceSec.toFixed(2)} sec average</span></div><span class="guide-badge ${p.choiceMs > 950 ? "guide-high" : p.choiceMs >= 700 ? "guide-mid" : "guide-good"}">${p.choiceText}</span></div>`);
+  if (p.simpleMs > 0 && p.choiceMs > 0) rows.push(`<div class="metric-row"><div><strong>Choice-response cost</strong><span>${p.choiceCostSec >= 0 ? p.choiceCostSec.toFixed(2) : "0.00"} sec additional time</span></div><span class="guide-badge guide-mid">Estimated response-selection demand</span></div>`);
+  if (p.inhibitionErrors > 0 || p.simpleMs > 0 || p.choiceMs > 0) rows.push(`<div class="metric-row"><div><strong>Go / No-Go</strong><span>${p.inhibitionErrors} total errors</span></div><span class="guide-badge ${p.inhibitionErrors >= 4 ? "guide-high" : p.inhibitionErrors >= 2 ? "guide-mid" : "guide-good"}">${p.inhibitionText}</span></div>`);
+  const html = rows.length ? rows.join("") + `<div class="processing-pattern"><strong>Overall pattern:</strong> ${p.pattern}</div>` : "Complete the processing speed tasks to populate this summary.";
+  setHTML("processingSpeedSummary", html);
 }
 /* =========================================================
   /* =========================================================
@@ -1417,7 +1447,6 @@ function getDomainSummary(domainKey, score) {
 
 function refreshAllScores() {
   updateGaitSpeed();
-  updateDriverResponseTime();
 
   state.mobility = calculateMobilityScore();
   state.driving = calculateDrivingScore();
@@ -1427,6 +1456,7 @@ function refreshAllScores() {
   state.home = calculateHomeSafetyScore();
   state.mental = calculateMentalScore();
 
+  updateProcessingSpeedSummary();
   updateResultsUI();
   updatePrintReports();
 }
@@ -1732,7 +1762,7 @@ function getDetailedTestResultsHTML() {
       test: "Simple Visual Reaction Time",
       result:
         simpleAvg > 0
-          ? `${simpleAvg} ms avg; ${getNumber("simpleRtMisses", 0)} missed/early taps`
+          ? `${(simpleAvg / 1000).toFixed(2)} sec avg; ${getNumber("simpleRtMisses", 0)} missed/early taps`
           : "Not completed",
       interpretation:
         simpleAvg <= 0
@@ -1748,7 +1778,7 @@ function getDetailedTestResultsHTML() {
       test: "Choice Reaction Time",
       result:
         choiceAvg > 0
-          ? `${choiceAvg} ms avg; ${getNumber("choiceRtErrors", 0)} errors; ${getNumber("choiceRtMisses", 0)} misses`
+          ? `${(choiceAvg / 1000).toFixed(2)} sec avg; ${getNumber("choiceRtErrors", 0)} errors; ${getNumber("choiceRtMisses", 0)} misses`
           : "Not completed",
       interpretation:
         choiceAvg <= 0
@@ -2497,15 +2527,13 @@ function getDomainFindings(domainId) {
     if (getNumber("transportReliance",0) > 0 || getNumber("communityRestriction",0) > 0) findings.push("Transportation reliance or community participation restriction is present.");
   }
   if (domainId === "processing") {
-    const perception=getNumber("perceptionThinkingTime",0);
-    const physical=getNumber("physicalReactionTime",0);
-    const total=getNumber("totalDriverResponseTime",0);
-    if(perception>1.75) findings.push(`Perception/thinking time is above the 0.75–1.75 sec reference range (${perception.toFixed(2)} sec).`);
-    if(physical>1.0) findings.push(`Physical reaction time is above the 0.5–1.0 sec reference range (${physical.toFixed(2)} sec).`);
-    if(total>2.75) findings.push(`Total driver response time is above the 1.25–2.75 sec reference range (${total.toFixed(2)} sec).`);
-    const s=getNumber("simpleRtAvg",0); if(s>500) findings.push(`Simple reaction time is slowed (${s} ms).`);
-    const c=getNumber("choiceRtAvg",0); if(c>700) findings.push(`Choice reaction time is slowed (${c} ms).`);
-    const errors=getNumber("choiceRtErrors",0)+getNumber("choiceRtMisses",0)+getNumber("goNoGoFalseTaps",0)+getNumber("goNoGoMisses",0); if(errors>0) findings.push(`${errors} combined errors/misses were recorded across reaction/inhibition tasks.`);
+    const p = getProcessingSpeedProfile();
+    if (p.simpleMs > 650) findings.push(`Simple reaction speed is slowed (${p.simpleSec.toFixed(2)} sec average).`);
+    else if (p.simpleMs >= 450) findings.push(`Simple reaction speed shows mild slowing/variability (${p.simpleSec.toFixed(2)} sec average).`);
+    if (p.choiceMs > 950) findings.push(`Choice reaction speed is slowed (${p.choiceSec.toFixed(2)} sec average), suggesting greater response-selection demand.`);
+    else if (p.choiceMs >= 700) findings.push(`Choice reaction speed shows mild response-selection slowing/variability (${p.choiceSec.toFixed(2)} sec average).`);
+    if (p.simpleMs > 0 && p.choiceMs > 0 && p.choiceCostSec > 0.10) findings.push(`Choice-response demand added about ${p.choiceCostSec.toFixed(2)} sec beyond the simple reaction task.`);
+    if (p.inhibitionErrors > 0) findings.push(`${p.inhibitionErrors} Go/No-Go error${p.inhibitionErrors === 1 ? "" : "s"} were recorded, indicating an inhibition/response-control finding.`);
   }
   if (domainId === "cognition") {
     const recall=getNumber("miniCogRecall",0); if(recall<3) findings.push(`3-word recall: ${recall}/3.`);
