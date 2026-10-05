@@ -588,6 +588,40 @@ function bindGoNoGoTest() {
   }
 }
 
+function updateDriverResponseTime() {
+  const perception = getNumber("perceptionThinkingTime", 0);
+  const physical = getNumber("physicalReactionTime", 0);
+  const totalEl = getEl("totalDriverResponseTime");
+  const interpretationEl = getEl("driverResponseInterpretation");
+  if (!totalEl || !interpretationEl) return;
+
+  if (perception > 0 && physical > 0) {
+    const total = Math.round((perception + physical) * 100) / 100;
+    totalEl.value = total.toFixed(2);
+
+    const perceptionStatus = perception < 0.75 ? "Below reference" : perception <= 1.75 ? "Within reference" : "Above reference";
+    const physicalStatus = physical < 0.5 ? "Below reference" : physical <= 1.0 ? "Within reference" : "Above reference";
+    const totalStatus = total < 1.25 ? "Below reference" : total <= 2.75 ? "Within reference" : "Above reference";
+
+    let pattern = "Both components are within the stated reference ranges.";
+    if (perception > 1.75 && physical <= 1.0) pattern = "Delay is primarily in perception/thinking time.";
+    else if (physical > 1.0 && perception <= 1.75) pattern = "Delay is primarily in physical reaction time.";
+    else if (perception > 1.75 && physical > 1.0) pattern = "Both perception/thinking and physical reaction components are above reference.";
+
+    interpretationEl.innerHTML = `
+      <div class="driver-response-status-grid">
+        <div><strong>Perception / thinking:</strong> ${perception.toFixed(2)} sec — ${perceptionStatus}</div>
+        <div><strong>Physical reaction:</strong> ${physical.toFixed(2)} sec — ${physicalStatus}</div>
+        <div><strong>Total response:</strong> ${total.toFixed(2)} sec — ${totalStatus}</div>
+      </div>
+      <div class="driver-response-pattern"><strong>Pattern:</strong> ${pattern}</div>
+    `;
+  } else {
+    totalEl.value = "0";
+    interpretationEl.textContent = "Enter both component times to calculate total driver response time.";
+  }
+}
+
 function calculateProcessingScore() {
   const simpleAvg = getNumber("simpleRtAvg", 0);
   const simpleMisses = getNumber("simpleRtMisses", 0);
@@ -1383,6 +1417,7 @@ function getDomainSummary(domainKey, score) {
 
 function refreshAllScores() {
   updateGaitSpeed();
+  updateDriverResponseTime();
 
   state.mobility = calculateMobilityScore();
   state.driving = calculateDrivingScore();
@@ -2462,6 +2497,12 @@ function getDomainFindings(domainId) {
     if (getNumber("transportReliance",0) > 0 || getNumber("communityRestriction",0) > 0) findings.push("Transportation reliance or community participation restriction is present.");
   }
   if (domainId === "processing") {
+    const perception=getNumber("perceptionThinkingTime",0);
+    const physical=getNumber("physicalReactionTime",0);
+    const total=getNumber("totalDriverResponseTime",0);
+    if(perception>1.75) findings.push(`Perception/thinking time is above the 0.75–1.75 sec reference range (${perception.toFixed(2)} sec).`);
+    if(physical>1.0) findings.push(`Physical reaction time is above the 0.5–1.0 sec reference range (${physical.toFixed(2)} sec).`);
+    if(total>2.75) findings.push(`Total driver response time is above the 1.25–2.75 sec reference range (${total.toFixed(2)} sec).`);
     const s=getNumber("simpleRtAvg",0); if(s>500) findings.push(`Simple reaction time is slowed (${s} ms).`);
     const c=getNumber("choiceRtAvg",0); if(c>700) findings.push(`Choice reaction time is slowed (${c} ms).`);
     const errors=getNumber("choiceRtErrors",0)+getNumber("choiceRtMisses",0)+getNumber("goNoGoFalseTaps",0)+getNumber("goNoGoMisses",0); if(errors>0) findings.push(`${errors} combined errors/misses were recorded across reaction/inhibition tasks.`);
@@ -2749,4 +2790,3 @@ document.addEventListener("DOMContentLoaded", () => {
   updateReviewScreen();
   showScreen("hero");
 });
-
