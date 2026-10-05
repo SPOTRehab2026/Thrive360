@@ -1123,6 +1123,37 @@ Seat the client comfortably with the device directly in front of them. Explain t
 </div>
 </div>
 
+<div class="card test-card driver-response-card">
+<h2 class="test-title">Driver Response Time Components</h2>
+<div class="instructions">
+<strong>Clinical reference:</strong> For an alert driver, perception/thinking time is typically about <strong>0.75–1.75 seconds</strong>. Physical reaction time to move from the accelerator to the brake and press it is about <strong>0.5–1.0 second</strong>. Total driver response time is the sum of these components, approximately <strong>1.25–2.75 seconds</strong>.
+</div>
+
+<div class="form-grid driver-response-grid">
+<div class="field">
+<label for="perceptionThinkingTime">Perception / thinking time (sec)</label>
+<input id="perceptionThinkingTime" type="number" min="0" step="0.01" placeholder="e.g. 1.20"/>
+<span class="small">Reference: 0.75–1.75 sec</span>
+</div>
+<div class="field">
+<label for="physicalReactionTime">Physical reaction time (sec)</label>
+<input id="physicalReactionTime" type="number" min="0" step="0.01" placeholder="e.g. 0.70"/>
+<span class="small">Reference: 0.5–1.0 sec</span>
+</div>
+<div class="field">
+<label for="totalDriverResponseTime">Total driver response time (sec)</label>
+<input id="totalDriverResponseTime" type="number" value="0" readonly/>
+<span class="small">Reference: 1.25–2.75 sec</span>
+</div>
+</div>
+
+<div id="driverResponseInterpretation" class="driver-response-interpretation" aria-live="polite">Enter both component times to calculate total driver response time.</div>
+
+<div class="instructions driver-response-note">
+These are screening reference ranges, not pass/fail criteria and not an independent determination of driving fitness. Interpret component delays alongside vision, cognition, mobility, attention, and the broader driving/community mobility assessment.
+</div>
+</div>
+
 <div class="card test-card">
 <h2 class="test-title">Simple Visual Reaction Time</h2>
 <div class="instructions">
