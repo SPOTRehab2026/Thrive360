@@ -1135,11 +1135,11 @@ The client taps the test pad as soon as it turns green. The app will run 5 trial
 
 <div class="form-grid">
 <div class="field">
-<label for="simpleRtAvg">Average reaction time (ms)</label>
+<label for="simpleRtAvg">Average reaction time (sec)</label>
 <input id="simpleRtAvg" type="number" value="0" readonly/>
 </div>
 <div class="field">
-<label for="simpleRtBest">Best reaction time (ms)</label>
+<label for="simpleRtBest">Best reaction time (sec)</label>
 <input id="simpleRtBest" type="number" value="0" readonly/>
 </div>
 <div class="field">
@@ -1148,22 +1148,7 @@ The client taps the test pad as soon as it turns green. The app will run 5 trial
 </div>
 </div>
 
-<div class="clinical-guide">
-<div class="guide-title">Driving Reference — Context Only</div>
-<div class="guide-row">
-<span>0.75–1.75 sec</span>
-<span class="guide-badge guide-mid">Perception / thinking time</span>
-</div>
-<div class="guide-row">
-<span>0.50–1.00 sec</span>
-<span class="guide-badge guide-good">Physical reaction time</span>
-</div>
-<div class="guide-row">
-<span>1.25–2.75 sec</span>
-<span class="guide-badge guide-high">Total driver response time</span>
-</div>
-<div class="instructions" style="margin-top:12px;">The Simple Visual Reaction Time task is a screening measure of basic response speed. It does <strong>not</strong> directly measure hazard perception/thinking time or brake response time.</div>
-</div>
+
 </div>
 
 <div class="card test-card">
@@ -1183,7 +1168,7 @@ The client responds to the arrow direction. Press LEFT for ← and RIGHT for →
 
 <div class="form-grid">
 <div class="field">
-<label for="choiceRtAvg">Average response time (ms)</label>
+<label for="choiceRtAvg">Average response time (sec)</label>
 <input id="choiceRtAvg" type="number" value="0" readonly/>
 </div>
 <div class="field">
@@ -1196,22 +1181,7 @@ The client responds to the arrow direction. Press LEFT for ← and RIGHT for →
 </div>
 </div>
 
-<div class="clinical-guide">
-<div class="guide-title">Driving Reference — Context Only</div>
-<div class="guide-row">
-<span>0.75–1.75 sec</span>
-<span class="guide-badge guide-mid">Perception / thinking time</span>
-</div>
-<div class="guide-row">
-<span>0.50–1.00 sec</span>
-<span class="guide-badge guide-good">Physical reaction time</span>
-</div>
-<div class="guide-row">
-<span>1.25–2.75 sec</span>
-<span class="guide-badge guide-high">Total driver response time</span>
-</div>
-<div class="instructions" style="margin-top:12px;">The Choice Reaction Time task adds response selection/decision demand. It does <strong>not</strong> directly measure the full perception-to-braking interval.</div>
-</div>
+
 </div>
 
 <div class="card test-card">
@@ -1254,15 +1224,16 @@ The client taps only when the cue says GO. They should not tap when the cue says
 </div>
 <div class="card test-card processing-summary-card">
 <h2 class="test-title">Processing Speed Summary</h2>
-<div class="instructions">The three digital tasks are used together to estimate the person's basic response speed, response-selection demand, and inhibitory control. Results are shown in <strong>seconds</strong> for easier clinical interpretation.</div>
+<div class="instructions">These three tasks look at different parts of response performance. Results are shown in <strong>seconds</strong> where a time is measured. The results help describe the response pattern relevant to driving, but they do not directly measure the full driving-response interval.</div>
 <div id="processingSpeedSummary" class="processing-speed-summary" aria-live="polite">Complete the processing speed tasks to populate this summary.</div>
-<div class="clinical-guide">
-<div class="guide-title">Driving Reference — Context Only</div>
-<div class="guide-row"><span>0.75–1.75 sec</span><span class="guide-badge guide-mid">Perception / thinking</span></div>
-<div class="guide-row"><span>0.50–1.00 sec</span><span class="guide-badge guide-good">Physical reaction</span></div>
-<div class="guide-row"><span>1.25–2.75 sec</span><span class="guide-badge guide-high">Total driver response</span></div>
+
+<div class="clinical-guide processing-driving-reference">
+<div class="guide-title">Driving Response Reference — Context Only</div>
+<div class="guide-row"><span><strong>Perception / thinking</strong></span><span>0.75–1.75 sec</span></div>
+<div class="guide-row"><span><strong>Physical reaction</strong></span><span>0.50–1.00 sec</span></div>
+<div class="guide-row"><span><strong>Total driver response</strong></span><span>1.25–2.75 sec</span></div>
+<div class="processing-reference-note">The Thrive360 tests do not directly measure these three driving intervals. Instead, they provide screening information about basic response speed, response selection, and response inhibition that can be considered alongside the driving reference.</div>
 </div>
-<div class="instructions" style="margin-top:12px;"><strong>Important:</strong> These driving ranges are contextual reference data. The Simple Reaction, Choice Reaction, and Go/No-Go tasks do not directly measure hazard perception time, accelerator-to-brake time, or total driver response time, and they should not be used alone to determine driving fitness.</div>
 </div>
 
 <div class="card test-card">
