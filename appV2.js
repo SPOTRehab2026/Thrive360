@@ -55,6 +55,20 @@ function getNumber(id, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
 
+function getReactionTimeMs(id) {
+  const value = getNumber(id, 0);
+  if (value <= 0) return 0;
+  // Backward compatibility: older drafts stored reaction times in milliseconds.
+  return value > 10 ? value : value * 1000;
+}
+
+function normalizeReactionTimeDisplays() {
+  ["simpleRtAvg", "simpleRtBest", "choiceRtAvg"].forEach((id) => {
+    const value = getNumber(id, 0);
+    if (value > 10) setInputValue(id, (value / 1000).toFixed(2));
+  });
+}
+
 function setText(id, value) {
   const el = getEl(id);
   if (el) el.textContent = value;
@@ -376,14 +390,14 @@ function bindSimpleReactionTest() {
     trialCount++;
 
     pad.className = "reaction-pad";
-    pad.textContent = `Trial ${trialCount}: ${rt} ms`;
+    pad.textContent = `Trial ${trialCount}: ${(rt / 1000).toFixed(2)} sec`;
 
     if (trialCount >= 5) {
       const avg = Math.round(average(trials));
       const best = Math.min(...trials);
 
-      setInputValue("simpleRtAvg", avg);
-      setInputValue("simpleRtBest", best);
+      setInputValue("simpleRtAvg", (avg / 1000).toFixed(2));
+      setInputValue("simpleRtBest", (best / 1000).toFixed(2));
       setInputValue("simpleRtMisses", misses);
 
       startBtn.disabled = false;
@@ -488,7 +502,7 @@ function bindChoiceReactionTest() {
     trialCount++;
 
     cue.className = "reaction-pad";
-    cue.textContent = choice === expected ? `${rt} ms` : `Incorrect — ${rt} ms`;
+    cue.textContent = choice === expected ? `${(rt / 1000).toFixed(2)} sec` : `Incorrect — ${(rt / 1000).toFixed(2)} sec`;
 
     continueChoice();
   }
@@ -497,7 +511,7 @@ function bindChoiceReactionTest() {
     if (trialCount >= 6) {
       const avg = trials.length ? Math.round(average(trials)) : 0;
 
-      setInputValue("choiceRtAvg", avg);
+      setInputValue("choiceRtAvg", (avg / 1000).toFixed(2));
       setInputValue("choiceRtErrors", errors);
       setInputValue("choiceRtMisses", misses);
 
@@ -589,9 +603,9 @@ function bindGoNoGoTest() {
 }
 
 function calculateProcessingScore() {
-  const simpleAvg = getNumber("simpleRtAvg", 0);
+  const simpleAvg = getReactionTimeMs("simpleRtAvg");
   const simpleMisses = getNumber("simpleRtMisses", 0);
-  const choiceAvg = getNumber("choiceRtAvg", 0);
+  const choiceAvg = getReactionTimeMs("choiceRtAvg");
   const choiceErrors = getNumber("choiceRtErrors", 0);
   const choiceMisses = getNumber("choiceRtMisses", 0);
   const falseTaps = getNumber("goNoGoFalseTaps", 0);
@@ -624,8 +638,8 @@ scores.push(clamp(inhibitionScore));
 }
 
 function getProcessingSpeedProfile() {
-  const simpleMs = getNumber("simpleRtAvg", 0);
-  const choiceMs = getNumber("choiceRtAvg", 0);
+  const simpleMs = getReactionTimeMs("simpleRtAvg");
+  const choiceMs = getReactionTimeMs("choiceRtAvg");
   const simpleMisses = getNumber("simpleRtMisses", 0);
   const choiceErrors = getNumber("choiceRtErrors", 0);
   const choiceMisses = getNumber("choiceRtMisses", 0);
@@ -678,12 +692,82 @@ function updateProcessingSpeedSummary() {
   const el = getEl("processingSpeedSummary");
   if (!el) return;
   const p = getProcessingSpeedProfile();
-  const rows = [];
-  if (p.simpleMs > 0) rows.push(`<div class="metric-row"><div><strong>Simple reaction</strong><span>${p.simpleSec.toFixed(2)} sec average</span></div><span class="guide-badge ${p.simpleMs > 650 ? "guide-high" : p.simpleMs >= 450 ? "guide-mid" : "guide-good"}">${p.simpleText}</span></div>`);
-  if (p.choiceMs > 0) rows.push(`<div class="metric-row"><div><strong>Choice reaction</strong><span>${p.choiceSec.toFixed(2)} sec average</span></div><span class="guide-badge ${p.choiceMs > 950 ? "guide-high" : p.choiceMs >= 700 ? "guide-mid" : "guide-good"}">${p.choiceText}</span></div>`);
-  if (p.simpleMs > 0 && p.choiceMs > 0) rows.push(`<div class="metric-row"><div><strong>Choice-response cost</strong><span>${p.choiceCostSec >= 0 ? p.choiceCostSec.toFixed(2) : "0.00"} sec additional time</span></div><span class="guide-badge guide-mid">Estimated response-selection demand</span></div>`);
-  if (p.inhibitionErrors > 0 || p.simpleMs > 0 || p.choiceMs > 0) rows.push(`<div class="metric-row"><div><strong>Go / No-Go</strong><span>${p.inhibitionErrors} total errors</span></div><span class="guide-badge ${p.inhibitionErrors >= 4 ? "guide-high" : p.inhibitionErrors >= 2 ? "guide-mid" : "guide-good"}">${p.inhibitionText}</span></div>`);
-  const html = rows.length ? rows.join("") + `<div class="processing-pattern"><strong>Overall pattern:</strong> ${p.pattern}</div>` : "Complete the processing speed tasks to populate this summary.";
+  const hasAny = p.simpleMs > 0 || p.choiceMs > 0 || p.inhibitionErrors > 0;
+  if (!hasAny) {
+    setHTML("processingSpeedSummary", "Complete the processing speed tasks to populate this summary.");
+    return;
+  }
+
+  const simpleCard = p.simpleMs > 0 ? `
+    <div class="processing-result-card">
+      <div class="processing-result-main">
+        <div class="processing-result-title">Simple Reaction</div>
+        <div class="processing-result-value">${p.simpleSec.toFixed(2)} <span>sec</span></div>
+        <div class="processing-result-purpose">Basic response speed</div>
+      </div>
+      <div class="processing-result-detail">${p.simpleText}</div>
+    </div>` : "";
+
+  const choiceCard = p.choiceMs > 0 ? `
+    <div class="processing-result-card">
+      <div class="processing-result-main">
+        <div class="processing-result-title">Choice Reaction</div>
+        <div class="processing-result-value">${p.choiceSec.toFixed(2)} <span>sec</span></div>
+        <div class="processing-result-purpose">Response selection / decision speed</div>
+      </div>
+      <div class="processing-result-detail">${p.choiceText}</div>
+    </div>` : "";
+
+  const goNoGoCard = `
+    <div class="processing-result-card">
+      <div class="processing-result-main">
+        <div class="processing-result-title">Go / No-Go</div>
+        <div class="processing-result-value">${p.inhibitionErrors} <span>errors</span></div>
+        <div class="processing-result-purpose">Response inhibition / accuracy</div>
+      </div>
+      <div class="processing-result-detail">${p.inhibitionText}</div>
+    </div>`;
+
+  let costBlock = "";
+  if (p.simpleMs > 0 && p.choiceMs > 0) {
+    const direction = p.choiceCostSec >= 0 ? "slower" : "faster";
+    costBlock = `
+      <div class="processing-cost-block">
+        <div class="processing-section-label">Response-selection difference</div>
+        <div class="processing-cost-value">${Math.abs(p.choiceCostSec).toFixed(2)} sec</div>
+        <p>Choice reaction was ${Math.abs(p.choiceCostSec).toFixed(2)} seconds ${direction} than simple reaction. This provides an estimate of the additional response-selection demand; it is not a direct measure of perception/thinking or braking time.</p>
+      </div>`;
+  }
+
+  const html = `
+    <div class="processing-intro">
+      <strong>How these tests relate to driving:</strong> driving requires detecting a situation, selecting an appropriate response, responding, and sometimes withholding a response. These tests screen different parts of that process.
+    </div>
+
+    <div class="processing-result-grid">
+      ${simpleCard}
+      ${choiceCard}
+      ${goNoGoCard}
+    </div>
+
+    ${costBlock}
+
+    <div class="processing-pattern">
+      <div class="processing-section-label">Overall pattern</div>
+      <p>${p.pattern}</p>
+    </div>
+
+    <div class="processing-driving-map">
+      <div class="processing-section-label">What each test contributes to the driving picture</div>
+      <div class="processing-map-row"><strong>Simple Reaction</strong><span>Baseline for basic response speed</span></div>
+      <div class="processing-map-row"><strong>Choice Reaction</strong><span>Shows the added demand of identifying/selecting the response</span></div>
+      <div class="processing-map-row"><strong>Go / No-Go</strong><span>Shows response inhibition and accuracy when a response should be withheld</span></div>
+    </div>
+
+    <div class="processing-clinical-note">
+      <strong>Clinical interpretation:</strong> Use this pattern with vision, cognition, mobility, medication, and driving findings. These digital tasks do not independently determine driving fitness.
+    </div>`;
+
   setHTML("processingSpeedSummary", html);
 }
 /* =========================================================
@@ -1762,7 +1846,7 @@ function getDetailedTestResultsHTML() {
       test: "Simple Visual Reaction Time",
       result:
         simpleAvg > 0
-          ? `${(simpleAvg / 1000).toFixed(2)} sec avg; ${getNumber("simpleRtMisses", 0)} missed/early taps`
+          ? `${simpleAvg.toFixed(2)} sec avg; ${getNumber("simpleRtMisses", 0)} missed/early taps`
           : "Not completed",
       interpretation:
         simpleAvg <= 0
@@ -1778,7 +1862,7 @@ function getDetailedTestResultsHTML() {
       test: "Choice Reaction Time",
       result:
         choiceAvg > 0
-          ? `${(choiceAvg / 1000).toFixed(2)} sec avg; ${getNumber("choiceRtErrors", 0)} errors; ${getNumber("choiceRtMisses", 0)} misses`
+          ? `${choiceAvg.toFixed(2)} sec avg; ${getNumber("choiceRtErrors", 0)} errors; ${getNumber("choiceRtMisses", 0)} misses`
           : "Not completed",
       interpretation:
         choiceAvg <= 0
@@ -2813,6 +2897,7 @@ document.addEventListener("DOMContentLoaded", () => {
   addDraftIndicator();
   bindAutosave();
   restoreDraft();
+  normalizeReactionTimeDisplays();
   refreshAllScores();
   ensureMentalSafetyAlert();
   updateReviewScreen();
